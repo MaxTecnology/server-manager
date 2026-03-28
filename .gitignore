@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+
+# .NET local environment
+.dotnet-home/
+.nuget/
+.appdata/
+.userprofile/
+
+# Frontend
+src/frontend/node_modules/
+src/frontend/dist/
+
+# IDE / OS
+.vs/
+.vscode/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
+
+# Database
+src/SessionManager.WebApi/data/

@@ -1,0 +1,556 @@
+Using launch settings from src\SessionManager.WebApi\Properties\launchSettings.json...
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10401]
+      An 'IServiceProvider' was created for internal use by Entity Framework.
+dbug: Microsoft.EntityFrameworkCore.Model[10601]
+      The index {'UserId'} was not created on entity type 'UserRole' as the properties are already covered by the index {'UserId', 'RoleId'}.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10403]
+      Entity Framework Core 10.0.5 initialized 'AppDbContext' using provider 'Microsoft.EntityFrameworkCore.Sqlite:10.0.5' with options: None
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (13ms).
+dbug: Microsoft.EntityFrameworkCore.Migrations[20400]
+      Migrating using database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (20ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsLock' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT OR IGNORE INTO "__EFMigrationsLock"("Id", "Timestamp") VALUES(1, '2026-03-27 23:34:57.8480329+00:00');
+      SELECT changes();
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'Serializable'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+          "MigrationId" TEXT NOT NULL CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY,
+          "ProductVersion" TEXT NOT NULL
+      );
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20209]
+      Beginning transaction with isolation level 'Unspecified'.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20200]
+      Began transaction with isolation level 'Serializable'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20005]
+      Creating DbConnection.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20006]
+      Created DbConnection. (1ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT COUNT(*) FROM "sqlite_master" WHERE "name" = '__EFMigrationsHistory' AND "type" = 'table';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT "MigrationId", "ProductVersion"
+      FROM "__EFMigrationsHistory"
+      ORDER BY "MigrationId";
+info: Microsoft.EntityFrameworkCore.Migrations[20405]
+      No migrations were applied. The database is already up to date.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20210]
+      Committing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20202]
+      Committed transaction.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DELETE FROM "__EFMigrationsLock";
+dbug: Microsoft.EntityFrameworkCore.Database.Transaction[20204]
+      Disposing transaction.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (2ms).
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Role>()
+          .Any(r => r.Name == @roleName)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Roles AS r
+                      WHERE r.Name == @roleName)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Roles AS r
+                      WHERE r.Name == @roleName), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@roleName='?' (Size = 13)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Roles" AS "r"
+          WHERE "r"."Name" = @roleName)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@roleName='?' (Size = 8)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Roles" AS "r"
+          WHERE "r"."Name" = @roleName)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10004]
+      SaveChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10005]
+      SaveChanges completed for 'AppDbContext' with 0 entities written to the database.
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Server>()
+          .Any()'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Servers AS s)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Servers AS s), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Servers" AS "s")
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Server>()
+          .Any(x => x.IsDefault)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Servers AS s
+                      WHERE s.IsDefault)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Servers AS s
+                      WHERE s.IsDefault), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Servers" AS "s"
+          WHERE "s"."IsDefault")
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<Setting>()
+          .Any(s => s.Key == @key)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Settings AS s
+                      WHERE s.Key == @key)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Settings AS s
+                      WHERE s.Key == @key), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@key='?' (Size = 18)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Settings" AS "s"
+          WHERE "s"."Key" = @key)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@key='?' (Size = 17)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Settings" AS "s"
+          WHERE "s"."Key" = @key)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<AllowedProcess>()
+          .Any(p => p.ProcessName == @process)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM AllowedProcesses AS a
+                      WHERE a.ProcessName == @process)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM AllowedProcesses AS a
+                      WHERE a.ProcessName == @process), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@process='?' (Size = 9)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "AllowedProcesses" AS "a"
+          WHERE "a"."ProcessName" = @process)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@process='?' (Size = 11)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "AllowedProcesses" AS "a"
+          WHERE "a"."ProcessName" = @process)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@process='?' (Size = 10)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "AllowedProcesses" AS "a"
+          WHERE "a"."ProcessName" = @process)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10004]
+      SaveChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10005]
+      SaveChanges completed for 'AppDbContext' with 0 entities written to the database.
+dbug: Microsoft.EntityFrameworkCore.Query[10111]
+      Compiling query expression: 
+      'DbSet<User>()
+          .Any(u => u.Username == @username)'
+dbug: Microsoft.EntityFrameworkCore.Query[10107]
+      Generated query execution expression: 
+      'queryContext => ShapedQueryCompilingExpressionVisitor.SingleAsync<bool>(
+          asyncEnumerable: SingleQueryingEnumerable.Create<bool>(
+              relationalQueryContext: (RelationalQueryContext)queryContext, 
+              relationalCommandResolver: parameters => [LIFTABLE Constant: RelationalCommandCache.QueryExpression(
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Users AS u
+                      WHERE u.Username == @username)) | Resolver: c => new RelationalCommandCache(
+                  c.Dependencies.MemoryCache, 
+                  c.RelationalDependencies.QuerySqlGeneratorFactory, 
+                  c.RelationalDependencies.RelationalParameterBasedSqlProcessorFactory, 
+                  Projection Mapping:
+                      EmptyProjectionMember -> 0
+                  SELECT EXISTS (
+                      SELECT 1
+                      FROM Users AS u
+                      WHERE u.Username == @username), 
+                  False, 
+                  MultipleParameters
+              )].GetRelationalCommandTemplate(parameters), 
+              readerColumns: null, 
+              shaper: (queryContext, dataReader, resultContext, resultCoordinator) => 
+              {
+                  bool? value1;
+                  value1 = dataReader.IsDBNull(0) ? default(bool?) : (bool?)dataReader.GetBoolean(0);
+                  return (bool)value1;
+              }, 
+              contextType: SessionManager.Infrastructure.Data.AppDbContext, 
+              standAloneStateManager: False, 
+              detailedErrorsEnabled: False, 
+              threadSafetyChecksEnabled: True), 
+          cancellationToken: queryContext.CancellationToken)'
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20000]
+      Opening connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20001]
+      Opened connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@username='?' (Size = 5)], CommandType='Text', CommandTimeout='30']
+      SELECT EXISTS (
+          SELECT 1
+          FROM "Users" AS "u"
+          WHERE "u"."Username" = @username)
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20002]
+      Closing connection to database 'main' on server 'C:\Projetos\gerenciador_de_sessao\src\SessionManager.WebApi\data\sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20003]
+      Closed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10004]
+      SaveChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10800]
+      DetectChanges starting for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.ChangeTracking[10801]
+      DetectChanges completed for 'AppDbContext'.
+dbug: Microsoft.EntityFrameworkCore.Update[10005]
+      SaveChanges completed for 'AppDbContext' with 0 entities written to the database.
+dbug: Microsoft.EntityFrameworkCore.Infrastructure[10407]
+      'AppDbContext' disposed.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20007]
+      Disposing connection to database 'main' on server './data/sessionmanager.dev.db'.
+dbug: Microsoft.EntityFrameworkCore.Database.Connection[20008]
+      Disposed connection to database 'main' on server './data/sessionmanager.dev.db' (0ms).
+dbug: Microsoft.Extensions.Hosting.Internal.Host[1]
+      Hosting starting
+fail: Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor[43]
+      An exception occurred while trying to decrypt the element.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+fail: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[24]
+      An exception occurred while processing the key element '<key id="9aa62342-b115-47d8-9098-dd565389bf09" version="1" />'.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.XmlEncryptionExtensions.DecryptElement(XElement element, IActivator activator)
+         at Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager.Microsoft.AspNetCore.DataProtection.KeyManagement.Internal.IInternalXmlKeyManager.DeserializeDescriptorFromKeyElement(XElement keyElement)
+fail: Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor[43]
+      An exception occurred while trying to decrypt the element.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+fail: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[24]
+      An exception occurred while processing the key element '<key id="9aa62342-b115-47d8-9098-dd565389bf09" version="1" />'.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.XmlEncryptionExtensions.DecryptElement(XElement element, IActivator activator)
+         at Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager.Microsoft.AspNetCore.DataProtection.KeyManagement.Internal.IInternalXmlKeyManager.DeserializeDescriptorFromKeyElement(XElement keyElement)
+fail: Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor[43]
+      An exception occurred while trying to decrypt the element.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+fail: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[24]
+      An exception occurred while processing the key element '<key id="9aa62342-b115-47d8-9098-dd565389bf09" version="1" />'.
+      System.Security.Cryptography.CryptographicException: Error occurred during a cryptographic operation.
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapiCore(Byte* pbProtectedData, UInt32 cbProtectedData, Byte* pbOptionalEntropy, UInt32 cbOptionalEntropy)
+         at Microsoft.AspNetCore.DataProtection.Cng.DpapiSecretSerializerHelper.UnprotectWithDpapi(Byte[] protectedSecret)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor.Decrypt(XElement encryptedElement)
+         at Microsoft.AspNetCore.DataProtection.XmlEncryption.XmlEncryptionExtensions.DecryptElement(XElement element, IActivator activator)
+         at Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager.Microsoft.AspNetCore.DataProtection.KeyManagement.Internal.IInternalXmlKeyManager.DeserializeDescriptorFromKeyElement(XElement keyElement)

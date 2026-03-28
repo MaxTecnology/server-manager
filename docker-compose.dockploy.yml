@@ -1,0 +1,36 @@
+services:
+  sessionmanager-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sessionmanager-api:latest
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Data Source=/app/data/sessionmanager.db
+      Jwt__Issuer: SessionManager
+      Jwt__Audience: SessionManager.Internal
+      Jwt__SigningKey: CHANGE_THIS_KEY_WITH_32_PLUS_CHARACTERS
+      Jwt__ExpirationMinutes: 480
+      AdminSeed__Username: admin
+      AdminSeed__DisplayName: Administrador
+      AdminSeed__Password: CHANGE_THIS_PASSWORD
+      Cors__AllowedOrigins__0: https://app.seu-dominio.com
+    volumes:
+      - sessionmanager_data:/app/data
+
+  sessionmanager-front:
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+      args:
+        VITE_API_BASE_URL: https://api.seu-dominio.com
+    image: sessionmanager-front:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+
+volumes:
+  sessionmanager_data:

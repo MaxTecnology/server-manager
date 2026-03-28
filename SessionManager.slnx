@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SessionManager.Application/SessionManager.Application.csproj" />
+    <Project Path="src/SessionManager.Domain/SessionManager.Domain.csproj" />
+    <Project Path="src/SessionManager.Infrastructure/SessionManager.Infrastructure.csproj" />
+    <Project Path="src/SessionManager.WebApi/SessionManager.WebApi.csproj" />
+  </Folder>
+</Solution>
