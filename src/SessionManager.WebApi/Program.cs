@@ -24,7 +24,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("InternalFrontend", policy =>
     {
-        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        var configuredOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        var origins = configuredOrigins
+            .SelectMany(value => (value ?? string.Empty)
+                .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(value => value.Trim().TrimEnd('/'))
+            .Where(value => Uri.TryCreate(value, UriKind.Absolute, out _))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
         if (origins.Length == 0)
         {
             policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();

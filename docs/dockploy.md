@@ -41,6 +41,11 @@ Frontend:
 
 - `SESSIONMANAGER_FRONT_API_BASE_URL`
 
+Formato CORS:
+
+- use origem exata do front (ex: `https://app.seu-dominio.com`, sem path)
+- pode informar mais de uma origem separando por virgula em `SESSIONMANAGER_CORS_ORIGIN`
+
 Portas de host (opcionais):
 
 - `SESSIONMANAGER_API_PORT` (default `5000`)
