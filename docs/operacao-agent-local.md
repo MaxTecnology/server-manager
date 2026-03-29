@@ -9,7 +9,7 @@ Padronizar operacao local do MVP do Agent Windows:
 1. subir stack local completa (Postgres + API + Front)
 2. validar endpoints do Agent
 3. publicar e instalar o Agent Windows como servico
-4. validar ciclo comando -> resultado -> auditoria
+4. validar ciclo heartbeat -> snapshot -> `/sessions` e dashboard
 
 ## 1) Subir stack local (WSL)
 
@@ -60,7 +60,16 @@ curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/heartbe
   -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0"}'
 ```
 
-### 4.2 Login admin
+### 4.2 Enviar snapshot de sessoes
+
+```bash
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/session-snapshot \
+  -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
+  -H "Content-Type: application/json" \
+  -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0","capturedAtUtc":"2026-03-29T19:40:45Z","sessionsOutput":" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME\n>admin                 rdp-tcp#1          3   Active      none   3/29/2026 10:00 AM"}'
+```
+
+### 4.3 Login admin
 
 ```bash
 curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/auth/login \
@@ -70,18 +79,26 @@ curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/auth/login \
 
 Copie `accessToken`.
 
-### 4.3 Enfileirar comando
+### 4.4 Validar leitura no frontend/API
+
+```bash
+curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/sessions?serverName=WSL-RDS" \
+  -H "Authorization: Bearer {accessToken}"
+
+curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/dashboard/metrics" \
+  -H "Authorization: Bearer {accessToken}"
+```
+
+### 4.5 Fluxo de comando (opcional)
+
+Se quiser validar tambem a fila de comandos administrativos:
 
 ```bash
 curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent-commands/servers/{serverId}/commands \
   -H "Authorization: Bearer {accessToken}" \
   -H "Content-Type: application/json" \
   -d '{"commandText":"echo agent-mvp-ok"}'
-```
 
-### 4.4 Poll e retorno de resultado
-
-```bash
 curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/next-command \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
@@ -93,13 +110,10 @@ curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/command
   -d '{"success":true,"resultOutput":"agent-mvp-ok"}'
 ```
 
-### 4.5 Conferir estado final e auditoria
+### 4.6 Conferir auditoria
 
 ```bash
-curl http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent-commands/{commandId} \
-  -H "Authorization: Bearer {accessToken}"
-
-curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/audit?search=AGENT_COMMAND&page=1&pageSize=20" \
+curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/audit?search=AGENT&page=1&pageSize=20" \
   -H "Authorization: Bearer {accessToken}"
 ```
 

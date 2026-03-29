@@ -12,4 +12,6 @@ public sealed class Server : BaseEntity
     public string? AgentVersion { get; set; }
     public DateTime? AgentLastHeartbeatUtc { get; set; }
     public string? AgentLastIpAddress { get; set; }
+    public string? AgentSessionSnapshotOutput { get; set; }
+    public DateTime? AgentSessionSnapshotUtc { get; set; }
 }

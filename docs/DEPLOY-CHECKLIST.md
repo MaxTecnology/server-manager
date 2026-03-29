@@ -59,12 +59,12 @@ Persistencia:
 ## 3) Smoke test Agent MVP
 
 1. `POST /api/agent/heartbeat` com `X-Agent-Key`
-2. login admin (`POST /api/auth/login`)
-3. enfileirar comando (`POST /api/agent-commands/servers/{serverId}/commands`)
-4. poll (`POST /api/agent/next-command`)
-5. resultado (`POST /api/agent/commands/{commandId}/result`)
-6. consultar comando (`GET /api/agent-commands/{commandId}`)
-7. verificar auditoria (`GET /api/audit?search=AGENT_COMMAND`)
+2. `POST /api/agent/session-snapshot` com saida do `query user`
+3. login admin (`POST /api/auth/login`)
+4. validar `GET /api/sessions?serverName={hostname}`
+5. validar `GET /api/dashboard/metrics`
+6. opcional: validar fila de comandos (`/api/agent-commands`, `/api/agent/next-command`, `/api/agent/commands/{id}/result`)
+7. verificar auditoria (`GET /api/audit?search=AGENT`)
 
 ## 4) Agent Windows (servico)
 
@@ -87,7 +87,7 @@ Get-Service SessionManagerAgent
 sc.exe query SessionManagerAgent
 ```
 
-4. validar que heartbeat atualiza servidor e que comandos concluem com auditoria.
+4. validar que heartbeat + snapshot atualizam servidor e aparecem no frontend.
 
 Referencia operacional detalhada:
 

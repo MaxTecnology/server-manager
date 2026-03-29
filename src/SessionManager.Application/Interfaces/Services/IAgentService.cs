@@ -10,6 +10,11 @@ public interface IAgentService
         string? clientIpAddress,
         CancellationToken cancellationToken = default);
 
+    Task<Result<AgentSessionSnapshotResponseDto>> RegisterSessionSnapshotAsync(
+        AgentSessionSnapshotRequestDto request,
+        string? clientIpAddress,
+        CancellationToken cancellationToken = default);
+
     Task<Result<AgentCommandDto>> EnqueueCommandAsync(
         Guid serverId,
         EnqueueAgentCommandRequestDto request,

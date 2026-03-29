@@ -1,9 +1,9 @@
 using SessionManager.Application.Common;
 using SessionManager.Application.DTOs.Dashboard;
+using SessionManager.Application.DTOs.Sessions;
 using SessionManager.Application.Interfaces.Persistence;
 using SessionManager.Application.Interfaces.Security;
 using SessionManager.Application.Interfaces.Services;
-using SessionManager.Application.Interfaces.Windows;
 
 namespace SessionManager.Application.Services;
 
@@ -11,26 +11,33 @@ public sealed class DashboardService : IDashboardService
 {
     private readonly IServerRepository _serverRepository;
     private readonly IAuditLogRepository _auditLogRepository;
-    private readonly IWindowsSessionGateway _windowsSessionGateway;
+    private readonly ISessionService _sessionService;
     private readonly IClock _clock;
 
     public DashboardService(
         IServerRepository serverRepository,
         IAuditLogRepository auditLogRepository,
-        IWindowsSessionGateway windowsSessionGateway,
+        ISessionService sessionService,
         IClock clock)
     {
         _serverRepository = serverRepository;
         _auditLogRepository = auditLogRepository;
-        _windowsSessionGateway = windowsSessionGateway;
+        _sessionService = sessionService;
         _clock = clock;
     }
 
     public async Task<Result<DashboardMetricsDto>> GetMetricsAsync(CancellationToken cancellationToken = default)
     {
-        var serverName = (await _serverRepository.GetDefaultAsync(cancellationToken))?.Hostname ?? Environment.MachineName;
-        var sessionsResult = await _windowsSessionGateway.ListSessionsAsync(serverName, cancellationToken);
-        var sessions = sessionsResult.Value ?? Array.Empty<WindowsSessionRecord>();
+        var sessions = new List<SessionInfoDto>();
+        var servers = await _serverRepository.GetAllAsync(cancellationToken);
+        foreach (var server in servers.Where(s => s.IsActive))
+        {
+            var result = await _sessionService.GetSessionsAsync(server.Hostname, cancellationToken);
+            if (result.IsSuccess && result.Value is not null)
+            {
+                sessions.AddRange(result.Value);
+            }
+        }
 
         var activeSessions = sessions.Count(s => s.State.Equals("Active", StringComparison.OrdinalIgnoreCase));
         var disconnectedSessions = sessions.Count(s => s.State.Equals("Disc", StringComparison.OrdinalIgnoreCase));

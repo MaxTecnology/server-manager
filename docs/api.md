@@ -66,6 +66,11 @@ Response 200:
 
 Permissao: autenticado
 
+Comportamento atual:
+
+- agrega sessoes de servidores ativos com snapshot recente do agent
+- nao depende de comandos RDS locais na API Linux/WSL
+
 Response 200:
 
 ```json
@@ -83,6 +88,12 @@ Response 200:
 ## GET `/sessions?serverName={hostname}`
 
 Permissao: `Administrator` ou `Operator`
+
+Comportamento atual:
+
+- em API Linux/WSL: retorna dados do ultimo snapshot recebido do agent para o servidor
+- em API Windows: pode usar gateway local de sessao
+- se o agent estiver sem heartbeat/snapshot recente, retorna `400` com mensagem de erro
 
 Response 200:
 
@@ -301,9 +312,40 @@ Response 200:
 }
 ```
 
+## POST `/agent/session-snapshot`
+
+Permissao: publica (com `X-Agent-Key`)
+
+Request:
+
+```json
+{
+  "serverName": "WSL-RDS",
+  "hostname": "WSL-RDS",
+  "agentId": "agent-windows-01",
+  "agentVersion": "0.1.0",
+  "capturedAtUtc": "2026-03-29T19:40:45Z",
+  "sessionsOutput": "USERNAME ... (saida do query user)"
+}
+```
+
+Response 200:
+
+```json
+{
+  "serverId": "guid",
+  "serverName": "WSL-RDS",
+  "hostname": "WSL-RDS",
+  "receivedAtUtc": "2026-03-29T19:40:48Z",
+  "capturedAtUtc": "2026-03-29T19:40:45Z"
+}
+```
+
 ## POST `/agent/next-command`
 
 Permissao: publica (com `X-Agent-Key`)
+
+Observacao: endpoint opcional para fila de comandos administrativos.
 
 Request:
 

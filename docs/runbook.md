@@ -48,8 +48,8 @@ Observacao:
   - `SESSIONMANAGER_POSTGRES_PORT` (default `5432`)
   - `SESSIONMANAGER_API_PORT` (default `5000`)
   - `SESSIONMANAGER_FRONT_PORT` (default `8080`)
-- como a API roda em container Linux no WSL, comandos nativos RDS do Windows (`query`, `rwinsta`, `logoff`, `taskkill`) nao existem no container
-- nesse modo local, dashboard retorna contagens zeradas e `GET /api/sessions` retorna lista vazia quando o comando RDS nao estiver disponivel, sem quebrar a API
+- como a API roda em container Linux no WSL, dados de sessao devem vir do Agent Windows (heartbeat + snapshot)
+- sem snapshot recente do agent, `/api/sessions` pode retornar erro de snapshot desatualizado
 
 Health API:
 
@@ -121,6 +121,21 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/agent/heartbeat" `
   -ContentType "application/json" `
   -Headers @{ "X-Agent-Key" = "DEV_ONLY_AGENT_KEY_CHANGE_ME" } `
   -Body $agentBody
+
+$snapshotBody = @{
+  serverName = "WSL-RDS"
+  hostname = "WSL-RDS"
+  agentId = "agent-windows-01"
+  agentVersion = "0.1.0"
+  capturedAtUtc = (Get-Date).ToUniversalTime().ToString("o")
+  sessionsOutput = " USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME`n>admin                 rdp-tcp#1          3   Active      none   3/29/2026 10:00 AM"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/agent/session-snapshot" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Headers @{ "X-Agent-Key" = "DEV_ONLY_AGENT_KEY_CHANGE_ME" } `
+  -Body $snapshotBody
 ```
 
 ## Publicacao para servidor
@@ -150,7 +165,7 @@ dotnet publish src/SessionManager.WebApi/SessionManager.WebApi.csproj -c Release
 1. `GET /api/health` responde `ok`
 2. login com admin funciona
 3. dashboard carrega metricas
-4. listagem de sessoes funciona para servidor default
+4. listagem de sessoes funciona para servidor com heartbeat + snapshot recente
 5. acoes de sessao geram entradas em auditoria
 6. frontend abre via app publicada (se `dist` presente)
 

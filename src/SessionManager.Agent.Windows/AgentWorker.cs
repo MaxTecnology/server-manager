@@ -54,6 +54,7 @@ public sealed class AgentWorker : BackgroundService
                 if (DateTimeOffset.UtcNow >= nextHeartbeatAt)
                 {
                     await SendHeartbeatAsync(identity, stoppingToken);
+                    await SendSessionSnapshotAsync(identity, options, stoppingToken);
                     nextHeartbeatAt = DateTimeOffset.UtcNow.Add(heartbeatInterval);
                 }
 
@@ -104,6 +105,41 @@ public sealed class AgentWorker : BackgroundService
         }
 
         _logger.LogWarning("Falha ao enviar heartbeat: {Error}", heartbeat.Error);
+    }
+
+    private async Task SendSessionSnapshotAsync(AgentIdentity identity, AgentOptions options, CancellationToken cancellationToken)
+    {
+        var execution = await _commandExecutionService.ExecuteAsync("query user", options.CommandTimeoutSeconds, cancellationToken);
+        var output = execution.StandardOutput;
+
+        if (string.IsNullOrWhiteSpace(output) && !string.IsNullOrWhiteSpace(execution.StandardError))
+        {
+            output = execution.StandardError;
+        }
+
+        var snapshot = await _apiClient.SendSessionSnapshotAsync(new AgentSessionSnapshotRequestDto
+        {
+            ServerName = identity.ServerName,
+            Hostname = identity.Hostname,
+            AgentId = identity.AgentId,
+            AgentVersion = identity.AgentVersion,
+            SessionsOutput = Truncate(output, options.MaxResultOutputLength),
+            CapturedAtUtc = DateTime.UtcNow
+        }, cancellationToken);
+
+        if (snapshot.Success)
+        {
+            _logger.LogDebug("Snapshot de sessões enviado com sucesso.");
+            return;
+        }
+
+        if (snapshot.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            _logger.LogError("Snapshot de sessões rejeitado (401). Verifique Agent:ApiKey.");
+            return;
+        }
+
+        _logger.LogWarning("Falha ao enviar snapshot de sessões: {Error}", snapshot.Error);
     }
 
     private async Task PollAndExecuteAsync(AgentIdentity identity, AgentOptions options, CancellationToken cancellationToken)

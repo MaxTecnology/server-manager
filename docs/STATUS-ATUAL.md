@@ -7,8 +7,8 @@ Ultima atualizacao: 2026-03-29
 - Backend ASP.NET Core .NET 10 em camadas (`WebApi`, `Application`, `Domain`, `Infrastructure`)
 - Frontend React + Vite servido em container Nginx
 - Banco em Postgres para local e para stack de deploy (`docker-compose.dockploy.yml`)
-- Integracao de operacao RDS encapsulada em gateway backend
-- Novo modulo Agent Windows MVP (heartbeat, fila de comandos e resultado)
+- Integracao de sessoes RDS via Agent Windows (API recebe heartbeat + snapshot e expoe para frontend)
+- Fila de comandos do Agent mantida para operacoes administrativas controladas
 
 ## O que ja esta pronto
 
@@ -20,6 +20,8 @@ Ultima atualizacao: 2026-03-29
 - Ambiente local WSL separado de deploy via `docker-compose.local.yml`
 - Agent MVP:
   - registro/heartbeat por servidor
+  - envio de snapshot de sessoes (`query user`) para API
+  - dashboard e `/sessions` consumindo snapshot do agent em ambiente Linux/WSL
   - enfileiramento de comando por servidor
   - poll do proximo comando pelo agent
   - retorno de resultado da execucao
@@ -32,5 +34,5 @@ Ultima atualizacao: 2026-03-29
 - rollout do agent em servidores Windows reais (piloto controlado)
 - modelo de seguranca do agent por cliente (rotacao/segredo por tenant)
 - telemetria de disponibilidade do agent (offline/timeout)
-- retries/politica de reentrega e expiracao de comandos
-- tela de operacao de comandos do agent no frontend
+- politica de expiracao/retenção da fila de comandos
+- tela de observabilidade do agent no frontend (heartbeat/snapshot/ultima coleta)

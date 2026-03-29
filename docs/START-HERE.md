@@ -46,10 +46,10 @@ curl http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}/
 Fluxo implementado:
 
 1. agent envia heartbeat e registra/atualiza servidor
-2. admin enfileira comando por servidor
-3. agent faz poll de comando pendente
-4. agent envia resultado
-5. execucao fica auditada em `AuditLogs`
+2. agent envia snapshot de sessoes (saida do `query user`)
+3. frontend consulta `/api/sessions` e `/api/dashboard/metrics` com base no snapshot mais recente
+4. opcionalmente, admin enfileira comando por servidor
+5. execucao de comando (quando usada) fica auditada em `AuditLogs`
 
 Operacao do agent (publish + servico Windows):
 

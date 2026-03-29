@@ -22,6 +22,14 @@ public sealed class AgentCommandRepository : IAgentCommandRepository
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<AgentCommand?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.AgentCommands
+            .AsNoTracking()
+            .Include(x => x.Server)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
     public async Task<AgentCommand?> GetNextPendingAsync(Guid serverId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.AgentCommands

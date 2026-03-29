@@ -44,27 +44,7 @@ public sealed class AgentService : IAgentService
 
         var serverName = NormalizeValue(request.ServerName) ?? normalizedHostname;
         var now = _clock.UtcNow;
-
-        var server = await _serverRepository.GetByHostnameAsync(normalizedHostname, cancellationToken);
-        if (server is null)
-        {
-            server = new Server
-            {
-                Name = Truncate(serverName, 80)!,
-                Hostname = Truncate(normalizedHostname, 120)!,
-                IsActive = true,
-                IsDefault = false,
-                CreatedAtUtc = now
-            };
-            _serverRepository.Add(server);
-        }
-        else
-        {
-            server.Name = Truncate(serverName, 80)!;
-            server.Hostname = Truncate(normalizedHostname, 120)!;
-            server.IsActive = true;
-            server.UpdatedAtUtc = now;
-        }
+        var server = await ResolveOrCreateServerAsync(normalizedHostname, serverName, now, cancellationToken);
 
         server.AgentId = Truncate(NormalizeValue(request.AgentId), 120);
         server.AgentVersion = Truncate(NormalizeValue(request.AgentVersion), 40);
@@ -78,6 +58,39 @@ public sealed class AgentService : IAgentService
             server.Name,
             server.Hostname,
             now));
+    }
+
+    public async Task<Result<AgentSessionSnapshotResponseDto>> RegisterSessionSnapshotAsync(
+        AgentSessionSnapshotRequestDto request,
+        string? clientIpAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedHostname = NormalizeValue(request.Hostname ?? request.ServerName);
+        if (normalizedHostname is null)
+        {
+            return Result<AgentSessionSnapshotResponseDto>.Failure("Hostname do servidor é obrigatório.");
+        }
+
+        var serverName = NormalizeValue(request.ServerName) ?? normalizedHostname;
+        var now = _clock.UtcNow;
+        var capturedAtUtc = NormalizeCapturedAt(request.CapturedAtUtc, now);
+
+        var server = await ResolveOrCreateServerAsync(normalizedHostname, serverName, now, cancellationToken);
+        server.AgentId = Truncate(NormalizeValue(request.AgentId), 120);
+        server.AgentVersion = Truncate(NormalizeValue(request.AgentVersion), 40);
+        server.AgentLastHeartbeatUtc = now;
+        server.AgentLastIpAddress = Truncate(clientIpAddress, 80);
+        server.AgentSessionSnapshotOutput = Truncate(NormalizeValue(request.SessionsOutput), 20000);
+        server.AgentSessionSnapshotUtc = capturedAtUtc;
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result<AgentSessionSnapshotResponseDto>.Success(new AgentSessionSnapshotResponseDto(
+            server.Id,
+            server.Name,
+            server.Hostname,
+            now,
+            capturedAtUtc));
     }
 
     public async Task<Result<AgentCommandDto>> EnqueueCommandAsync(
@@ -272,6 +285,45 @@ public sealed class AgentService : IAgentService
     private static string? NormalizeValue(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private async Task<Server> ResolveOrCreateServerAsync(
+        string normalizedHostname,
+        string serverName,
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        var server = await _serverRepository.GetByHostnameAsync(normalizedHostname, cancellationToken);
+        if (server is null)
+        {
+            server = new Server
+            {
+                Name = Truncate(serverName, 80)!,
+                Hostname = Truncate(normalizedHostname, 120)!,
+                IsActive = true,
+                IsDefault = false,
+                CreatedAtUtc = now
+            };
+            _serverRepository.Add(server);
+            return server;
+        }
+
+        server.Name = Truncate(serverName, 80)!;
+        server.Hostname = Truncate(normalizedHostname, 120)!;
+        server.IsActive = true;
+        server.UpdatedAtUtc = now;
+        return server;
+    }
+
+    private static DateTime NormalizeCapturedAt(DateTime? capturedAtUtc, DateTime now)
+    {
+        if (!capturedAtUtc.HasValue)
+        {
+            return now;
+        }
+
+        var normalized = DateTime.SpecifyKind(capturedAtUtc.Value, DateTimeKind.Utc);
+        return normalized > now ? now : normalized;
     }
 
     private static string? Truncate(string? value, int maxLength)

@@ -39,6 +39,26 @@ public sealed class AgentController : ApiControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("session-snapshot")]
+    public async Task<IActionResult> SessionSnapshot([FromBody] AgentSessionSnapshotRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!IsAgentAuthorized())
+        {
+            return Unauthorized(new { message = "Agent não autorizado." });
+        }
+
+        var result = await _agentService.RegisterSessionSnapshotAsync(
+            request,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao registrar snapshot de sessões." });
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpPost("next-command")]
     public async Task<IActionResult> NextCommand([FromBody] AgentPollRequestDto request, CancellationToken cancellationToken)
     {

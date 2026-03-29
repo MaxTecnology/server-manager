@@ -32,6 +32,16 @@ public sealed class AgentApiClient
             cancellationToken);
     }
 
+    public Task<AgentApiCallResult<AgentSessionSnapshotResponseDto>> SendSessionSnapshotAsync(
+        AgentSessionSnapshotRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        return PostAsync<AgentSessionSnapshotRequestDto, AgentSessionSnapshotResponseDto>(
+            "api/agent/session-snapshot",
+            request,
+            cancellationToken);
+    }
+
     public async Task<AgentApiCallResult<AgentCommandDispatchDto?>> PollNextCommandAsync(
         AgentPollRequestDto request,
         CancellationToken cancellationToken = default)

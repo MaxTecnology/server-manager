@@ -172,6 +172,11 @@ namespace SessionManager.Infrastructure.Data.Migrations
                     b.Property<string>("AgentLastIpAddress")
                         .HasMaxLength(80);
 
+                    b.Property<string>("AgentSessionSnapshotOutput")
+                        .HasMaxLength(20000);
+
+                    b.Property<DateTime?>("AgentSessionSnapshotUtc");
+
                     b.Property<string>("AgentVersion")
                         .HasMaxLength(40);
 

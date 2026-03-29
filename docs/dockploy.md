@@ -77,6 +77,7 @@ Volume persistente:
 - instalar o agent no Windows Server usando `deploy/agent/windows/install-agent.ps1`
 - usar `-ApiBaseUrl` apontando para a URL publica da API (ex: `https://api.seu-dominio.com`)
 - usar no script a mesma chave configurada em `SESSIONMANAGER_AGENT_API_KEY`
+- validar no painel que heartbeat e snapshot de sessoes chegam (`/api/agent/heartbeat` e `/api/agent/session-snapshot`)
 
 ## 7) Observacao para desenvolvimento local (WSL)
 
