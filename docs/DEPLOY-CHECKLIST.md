@@ -14,8 +14,8 @@ Validar:
 
 ```bash
 docker compose --env-file .env.local -f docker-compose.local.yml ps
-curl http://localhost:5000/api/health
-curl http://localhost:8080/
+curl http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/health
+curl http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}/
 ```
 
 Esperado em `ps`:
@@ -46,6 +46,11 @@ Variaveis obrigatorias de producao:
 - `SESSIONMANAGER_AGENT_API_KEY`
 - `SESSIONMANAGER_CORS_ORIGIN`
 - `SESSIONMANAGER_FRONT_API_BASE_URL`
+
+Variaveis opcionais de porta:
+
+- `SESSIONMANAGER_API_PORT` (default `5000`)
+- `SESSIONMANAGER_FRONT_PORT` (default `8080`)
 
 Persistencia:
 

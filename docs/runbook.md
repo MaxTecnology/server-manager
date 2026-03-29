@@ -44,6 +44,10 @@ Observacao:
 
 - o `docker-compose.local.yml` usa Postgres em container (`postgres:16-alpine`)
 - a API local usa `ConnectionStrings__DefaultConnection` apontando para `Host=postgres`
+- portas de host sao configuraveis:
+  - `SESSIONMANAGER_POSTGRES_PORT` (default `5432`)
+  - `SESSIONMANAGER_API_PORT` (default `5000`)
+  - `SESSIONMANAGER_FRONT_PORT` (default `8080`)
 - como a API roda em container Linux no WSL, comandos nativos RDS do Windows (`query`, `rwinsta`, `logoff`, `taskkill`) nao existem no container
 - nesse modo local, dashboard retorna contagens zeradas e `GET /api/sessions` retorna lista vazia quando o comando RDS nao estiver disponivel, sem quebrar a API
 
@@ -268,3 +272,27 @@ docker compose --env-file .env.local -f docker-compose.local.yml up --build -d
 ```
 
 Depois disso, o frontend local volta a apontar para `http://localhost:5000`.
+
+## Troubleshooting: Bind for 0.0.0.0:8080 failed (porta ocupada)
+
+Sintoma:
+
+- erro ao subir `sessionmanager-front` com mensagem `port is already allocated`
+
+Correcao no `.env.dockploy` ou `.env.local`:
+
+```bash
+SESSIONMANAGER_FRONT_PORT=18080
+```
+
+Opcional para API:
+
+```bash
+SESSIONMANAGER_API_PORT=15000
+```
+
+Subir novamente:
+
+```bash
+docker compose --env-file .env.dockploy -f docker-compose.dockploy.yml up --build -d
+```

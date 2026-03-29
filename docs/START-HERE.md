@@ -32,13 +32,13 @@ No ambiente local, o stack sobe com 3 containers:
 Saude da API:
 
 ```bash
-curl http://localhost:5000/api/health
+curl http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/health
 ```
 
 Frontend:
 
 ```bash
-curl http://localhost:8080/
+curl http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}/
 ```
 
 ## 3) MVP Agent Windows

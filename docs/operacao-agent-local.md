@@ -28,14 +28,14 @@ Servicos esperados:
 
 Endpoints locais:
 
-- API: `http://localhost:5000`
-- Front: `http://localhost:8080`
+- API: `http://localhost:${SESSIONMANAGER_API_PORT:-5000}`
+- Front: `http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}`
 
 ## 2) Validacao rapida da aplicacao
 
 ```bash
-docker run --rm --network host curlimages/curl:8.7.1 -sS http://localhost:5000/api/health
-docker run --rm --network host curlimages/curl:8.7.1 -sSI http://localhost:8080/
+docker run --rm --network host curlimages/curl:8.7.1 -sS http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/health
+docker run --rm --network host curlimages/curl:8.7.1 -sSI http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}/
 ```
 
 Esperado:
@@ -54,7 +54,7 @@ Esperado:
 ### 4.1 Heartbeat
 
 ```bash
-curl -X POST http://localhost:5000/api/agent/heartbeat \
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/heartbeat \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
   -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0"}'
@@ -63,7 +63,7 @@ curl -X POST http://localhost:5000/api/agent/heartbeat \
 ### 4.2 Login admin
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"Admin@12345"}'
 ```
@@ -73,7 +73,7 @@ Copie `accessToken`.
 ### 4.3 Enfileirar comando
 
 ```bash
-curl -X POST http://localhost:5000/api/agent-commands/servers/{serverId}/commands \
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent-commands/servers/{serverId}/commands \
   -H "Authorization: Bearer {accessToken}" \
   -H "Content-Type: application/json" \
   -d '{"commandText":"echo agent-mvp-ok"}'
@@ -82,12 +82,12 @@ curl -X POST http://localhost:5000/api/agent-commands/servers/{serverId}/command
 ### 4.4 Poll e retorno de resultado
 
 ```bash
-curl -X POST http://localhost:5000/api/agent/next-command \
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/next-command \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
   -d '{"hostname":"WSL-RDS","agentId":"agent-windows-01"}'
 
-curl -X POST http://localhost:5000/api/agent/commands/{commandId}/result \
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/commands/{commandId}/result \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
   -d '{"success":true,"resultOutput":"agent-mvp-ok"}'
@@ -96,10 +96,10 @@ curl -X POST http://localhost:5000/api/agent/commands/{commandId}/result \
 ### 4.5 Conferir estado final e auditoria
 
 ```bash
-curl http://localhost:5000/api/agent-commands/{commandId} \
+curl http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent-commands/{commandId} \
   -H "Authorization: Bearer {accessToken}"
 
-curl "http://localhost:5000/api/audit?search=AGENT_COMMAND&page=1&pageSize=20" \
+curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/audit?search=AGENT_COMMAND&page=1&pageSize=20" \
   -H "Authorization: Bearer {accessToken}"
 ```
 

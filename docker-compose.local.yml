@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-sessionmanager}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sessionmanager}
     ports:
-      - "5432:5432"
+      - "${SESSIONMANAGER_POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sessionmanager -d sessionmanager"]
       interval: 5s
@@ -25,7 +25,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "5000:5000"
+      - "${SESSIONMANAGER_API_PORT:-5000}:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-sessionmanager};Username=${POSTGRES_USER:-sessionmanager};Password=${POSTGRES_PASSWORD:-sessionmanager}
@@ -37,7 +37,7 @@ services:
       AdminSeed__DisplayName: Administrador
       AdminSeed__Password: ${SESSIONMANAGER_ADMIN_PASSWORD:-Admin@12345}
       Agent__ApiKey: ${SESSIONMANAGER_AGENT_API_KEY:-DEV_ONLY_AGENT_KEY_CHANGE_ME}
-      Cors__AllowedOrigins__0: http://localhost:8080
+      Cors__AllowedOrigins__0: ${SESSIONMANAGER_CORS_ORIGIN:-http://localhost:8080}
       Cors__AllowedOrigins__1: http://localhost:5173
 
   sessionmanager-front:
@@ -48,7 +48,7 @@ services:
         VITE_API_BASE_URL: ${SESSIONMANAGER_FRONT_API_BASE_URL:-http://localhost:5000}
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${SESSIONMANAGER_FRONT_PORT:-8080}:80"
 
 volumes:
   sessionmanager_postgres_data:

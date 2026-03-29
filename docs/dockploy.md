@@ -41,6 +41,11 @@ Frontend:
 
 - `SESSIONMANAGER_FRONT_API_BASE_URL`
 
+Portas de host (opcionais):
+
+- `SESSIONMANAGER_API_PORT` (default `5000`)
+- `SESSIONMANAGER_FRONT_PORT` (default `8080`)
+
 ## 3) Deploy do stack
 
 ```bash
@@ -63,6 +68,8 @@ Volume persistente:
 - alteracao de senha do Postgres apos volume criado exige recreacao do volume
 - nao usar credenciais default em producao
 - o compose de deploy foi endurecido para falhar cedo se variavel obrigatoria nao estiver configurada
+- se `8080` estiver ocupada, ajuste `SESSIONMANAGER_FRONT_PORT` (ex: `18080`)
+- se `5000` estiver ocupada, ajuste `SESSIONMANAGER_API_PORT` (ex: `15000`)
 
 ## 6) Agent Windows com API no Dockploy
 
