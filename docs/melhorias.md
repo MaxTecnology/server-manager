@@ -17,7 +17,7 @@
 
 3. testes automatizados
 - testes de servicos da camada `Application`
-- testes de integracao de API com SQLite
+- testes de integracao de API com Postgres (container de teste)
 - testes de parse de `query user` com amostras reais
 
 ## Prioridade media
@@ -55,7 +55,7 @@
 - sem permissao correta da conta do processo, comandos administrativos falham
 
 3. escala de auditoria
-- sem politicas de limpeza/arquivo, base SQLite pode crescer com o tempo
+- sem politicas de limpeza/arquivo, tabela de auditoria pode crescer com o tempo
 
 4. autenticao local apenas
 - nao ha SSO/AD nesta versao inicial

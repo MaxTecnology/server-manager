@@ -8,4 +8,8 @@ public sealed class Server : BaseEntity
     public string Hostname { get; set; } = string.Empty;
     public bool IsDefault { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? AgentId { get; set; }
+    public string? AgentVersion { get; set; }
+    public DateTime? AgentLastHeartbeatUtc { get; set; }
+    public string? AgentLastIpAddress { get; set; }
 }

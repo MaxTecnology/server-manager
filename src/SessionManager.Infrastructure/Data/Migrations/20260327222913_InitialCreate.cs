@@ -15,12 +15,12 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "AllowedProcesses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ProcessName = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedBy = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProcessName = table.Column<string>(maxLength: 80, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedBy = table.Column<string>(maxLength: 120, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,19 +31,19 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "AuditLogs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OperatorUsername = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
-                    Action = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
-                    ServerName = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    SessionId = table.Column<int>(type: "INTEGER", nullable: true),
-                    TargetUsername = table.Column<string>(type: "TEXT", maxLength: 120, nullable: true),
-                    ProcessName = table.Column<string>(type: "TEXT", maxLength: 80, nullable: true),
-                    Success = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ErrorMessage = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    ClientIpAddress = table.Column<string>(type: "TEXT", maxLength: 80, nullable: true),
-                    MetadataJson = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OperatorUsername = table.Column<string>(maxLength: 80, nullable: false),
+                    Action = table.Column<string>(maxLength: 80, nullable: false),
+                    ServerName = table.Column<string>(maxLength: 120, nullable: false),
+                    SessionId = table.Column<int>(type: "integer", nullable: true),
+                    TargetUsername = table.Column<string>(maxLength: 120, nullable: true),
+                    ProcessName = table.Column<string>(maxLength: 80, nullable: true),
+                    Success = table.Column<bool>(type: "boolean", nullable: false),
+                    ErrorMessage = table.Column<string>(maxLength: 1000, nullable: true),
+                    ClientIpAddress = table.Column<string>(maxLength: 80, nullable: true),
+                    MetadataJson = table.Column<string>(maxLength: 2000, nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -54,11 +54,11 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 160, nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(maxLength: 60, nullable: false),
+                    Description = table.Column<string>(maxLength: 160, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -69,13 +69,13 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "Servers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
-                    Hostname = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    IsDefault = table.Column<bool>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(maxLength: 80, nullable: false),
+                    Hostname = table.Column<string>(maxLength: 120, nullable: false),
+                    IsDefault = table.Column<bool>(type: "boolean", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -86,12 +86,12 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "Settings",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Key = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    Value = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 260, nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Key = table.Column<string>(maxLength: 120, nullable: false),
+                    Value = table.Column<string>(maxLength: 500, nullable: false),
+                    Description = table.Column<string>(maxLength: 260, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -102,13 +102,13 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
-                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Username = table.Column<string>(maxLength: 80, nullable: false),
+                    DisplayName = table.Column<string>(maxLength: 120, nullable: false),
+                    PasswordHash = table.Column<string>(maxLength: 300, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -119,8 +119,8 @@ namespace SessionManager.Infrastructure.Data.Migrations
                 name: "UserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    RoleId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

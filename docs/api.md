@@ -267,3 +267,123 @@ Request:
 Permissao: `Administrator` ou `Operator`
 
 Retorna lista cadastrada no banco com indicador de default.
+
+## Agent (MVP)
+
+Autenticacao do agent:
+
+- header obrigatorio `X-Agent-Key`
+- chave configurada em `Agent:ApiKey`
+
+## POST `/agent/heartbeat`
+
+Permissao: publica (com `X-Agent-Key`)
+
+Request:
+
+```json
+{
+  "serverName": "WSL-RDS",
+  "hostname": "WSL-RDS",
+  "agentId": "agent-windows-01",
+  "agentVersion": "0.1.0"
+}
+```
+
+Response 200:
+
+```json
+{
+  "serverId": "guid",
+  "serverName": "WSL-RDS",
+  "hostname": "WSL-RDS",
+  "receivedAtUtc": "2026-03-28T22:45:29Z"
+}
+```
+
+## POST `/agent/next-command`
+
+Permissao: publica (com `X-Agent-Key`)
+
+Request:
+
+```json
+{
+  "hostname": "WSL-RDS",
+  "agentId": "agent-windows-01"
+}
+```
+
+Response 200:
+
+```json
+{
+  "commandId": "guid",
+  "commandText": "query user",
+  "requestedAtUtc": "2026-03-28T22:45:30Z"
+}
+```
+
+Sem comando pendente: `204 No Content`.
+
+## POST `/agent/commands/{commandId}/result`
+
+Permissao: publica (com `X-Agent-Key`)
+
+Request:
+
+```json
+{
+  "success": true,
+  "resultOutput": "saida do comando",
+  "errorMessage": null
+}
+```
+
+Response 200:
+
+```json
+{
+  "message": "Resultado recebido."
+}
+```
+
+## Agent Commands (Admin)
+
+## POST `/agent-commands/servers/{serverId}/commands`
+
+Permissao: `Administrator`
+
+Request:
+
+```json
+{
+  "commandText": "query user"
+}
+```
+
+Response 200:
+
+```json
+{
+  "id": "guid",
+  "serverId": "guid",
+  "serverName": "WSL-RDS",
+  "hostname": "WSL-RDS",
+  "requestedBy": "admin",
+  "commandText": "query user",
+  "status": "Pending",
+  "requestedAtUtc": "2026-03-28T22:45:30Z",
+  "pickedAtUtc": null,
+  "completedAtUtc": null,
+  "assignedAgentId": null,
+  "resultOutput": null,
+  "errorMessage": null
+}
+```
+
+## GET `/agent-commands/{commandId}`
+
+Permissao: `Administrator`
+
+Retorna estado e resultado atual do comando.

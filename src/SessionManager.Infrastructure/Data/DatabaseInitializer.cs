@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SessionManager.Application.Interfaces.Security;
 using SessionManager.Domain.Constants;
@@ -13,22 +14,25 @@ public sealed class DatabaseInitializer
     private readonly IPasswordHasher _passwordHasher;
     private readonly IOptions<AdminSeedOptions> _adminOptions;
     private readonly IClock _clock;
+    private readonly ILogger<DatabaseInitializer> _logger;
 
     public DatabaseInitializer(
         AppDbContext dbContext,
         IPasswordHasher passwordHasher,
         IOptions<AdminSeedOptions> adminOptions,
-        IClock clock)
+        IClock clock,
+        ILogger<DatabaseInitializer> logger)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
         _adminOptions = adminOptions;
         _clock = clock;
+        _logger = logger;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        await _dbContext.Database.MigrateAsync(cancellationToken);
+        await ApplyMigrationsWithRetryAsync(cancellationToken);
 
         await SeedRolesAsync(cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -160,6 +164,33 @@ public sealed class DatabaseInitializer
                 Description = description,
                 CreatedAtUtc = _clock.UtcNow
             });
+        }
+    }
+
+    private async Task ApplyMigrationsWithRetryAsync(CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 10;
+        var delay = TimeSpan.FromSeconds(2);
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await _dbContext.Database.MigrateAsync(cancellationToken);
+                return;
+            }
+            catch (Exception ex) when (attempt < maxAttempts)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Falha ao aplicar migrations (tentativa {Attempt}/{MaxAttempts}). Nova tentativa em {DelaySeconds}s.",
+                    attempt,
+                    maxAttempts,
+                    delay.TotalSeconds);
+
+                await Task.Delay(delay, cancellationToken);
+                delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 15));
+            }
         }
     }
 }

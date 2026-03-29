@@ -2,20 +2,16 @@
 
 ## Provider atual
 
-- SQLite
 - EF Core 10
+- Postgres como padrao nas stacks Docker:
+  - `docker-compose.local.yml` (WSL)
+  - `docker-compose.dockploy.yml` (deploy)
+- SQLite permanece como fallback para execucao sem Docker (connection string local em `appsettings*.json`)
 
-Connection string default:
+Selecao de provider:
 
-```json
-"Data Source=./data/sessionmanager.db"
-```
-
-Em desenvolvimento:
-
-```json
-"Data Source=./data/sessionmanager.dev.db"
-```
+- `Host=` / `Server=` na connection string -> Npgsql/Postgres
+- demais formatos -> SQLite
 
 ## Modelo de dados
 
@@ -25,6 +21,7 @@ Tabelas principais:
 - `Roles`
 - `UserRoles`
 - `Servers`
+- `AgentCommands`
 - `AuditLogs`
 - `Settings`
 - `AllowedProcesses`
@@ -51,6 +48,12 @@ Tabelas principais:
 - PK: `Id`
 - unique: `Name`
 - unique: `Hostname`
+
+## AgentCommands
+
+- PK: `Id`
+- FK: `ServerId`
+- indice composto: `ServerId + Status + CreatedAtUtc`
 
 ## AuditLogs
 
@@ -84,11 +87,12 @@ Inclui:
   - `chrome.exe`
 - usuario admin inicial (configuravel em `AdminSeed`)
 
-## Migration inicial
+## Migrations
 
-Arquivo:
+Arquivos:
 
 - `src/SessionManager.Infrastructure/Data/Migrations/20260327222913_InitialCreate.cs`
+- `src/SessionManager.Infrastructure/Data/Migrations/20260328224306_AddAgentWindowsMvp.cs`
 
 Snapshot:
 
@@ -120,14 +124,27 @@ dotnet tool run dotnet-ef migrations remove `
   --startup-project src/SessionManager.WebApi/SessionManager.WebApi.csproj
 ```
 
+## Operacao com Docker
+
+WSL local:
+
+```bash
+docker compose --env-file .env.local -f docker-compose.local.yml up --build -d
+```
+
+Dockploy/deploy:
+
+```bash
+docker compose --env-file .env.dockploy -f docker-compose.dockploy.yml up --build -d
+```
+
+A API aplica migrations automaticamente na subida.
+
 ## Observacoes para evolucao de banco
 
-- troca de provider deve ficar concentrada em `Infrastructure`:
-  - `DependencyInjection`
-  - pacotes EF do provider alvo
-  - connection string
-- camada `Application` nao deve depender de tipos especificos de SQLite
-- para migrar a producao com seguranca:
+- mudancas de provider devem ficar concentradas em `Infrastructure`
+- camada `Application` nao deve depender de tipos especificos de provider
+- antes de cutover em producao:
   - congelar schema
-  - gerar script de migracao
-  - executar backup antes de cutover
+  - gerar script de migration
+  - executar backup do banco

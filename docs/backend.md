@@ -27,6 +27,7 @@ Configurado em `Program.cs`:
 
 - `AuthController`
 - `HealthController`
+- `AgentController` (com header `X-Agent-Key`)
 
 ## Protegidos
 
@@ -34,6 +35,7 @@ Configurado em `Program.cs`:
 - `SessionsController`
 - `AuditController`
 - `ServersController`
+- `AgentCommandsController` (admin)
 - `SettingsController` (admin)
 - `UsersController` (admin)
 - `AllowedProcessesController` (admin)
@@ -50,6 +52,7 @@ Principais classes em `Application/Services`:
 - `UserService`
 - `AllowedProcessService`
 - `ServerService`
+- `AgentService`
 
 ## Persistencia
 
@@ -61,6 +64,7 @@ Implementacoes em `Infrastructure/Repositories`:
 - `SettingRepository`
 - `AllowedProcessRepository`
 - `ServerRepository`
+- `AgentCommandRepository`
 
 `AppDbContext` tambem implementa `IUnitOfWork`.
 
@@ -95,6 +99,11 @@ Campos principais:
 - sucesso/erro
 - mensagem de erro
 - IP cliente
+
+No MVP de Agent:
+
+- `AGENT_COMMAND_ENQUEUE` (quando admin envia comando)
+- `AGENT_COMMAND_RESULT` (quando agent retorna execucao)
 
 ## Convencoes adotadas
 

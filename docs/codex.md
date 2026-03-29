@@ -1,6 +1,6 @@
 # Contexto Operacional (Codex)
 
-Ultima atualizacao: 2026-03-27
+Ultima atualizacao: 2026-03-28
 
 ## Objetivo do sistema
 
@@ -17,15 +17,17 @@ Primeira versao funcional entregue e validada com:
 
 - backend ASP.NET Core .NET 10 em arquitetura por camadas
 - frontend React + Vite com telas minimas obrigatorias
-- banco SQLite com EF Core e migration inicial
+- banco Postgres em container (local e stack de deploy Dockploy), com migrations e seed automatico na subida da API
 - seed automatico de perfis, servidor padrao, configuracoes, processos permitidos e usuario admin
 - integracao com comandos nativos do Windows (`query user`, `rwinsta`, `logoff`, `taskkill`)
+- API do Agent Windows (MVP) com heartbeat, fila de comando por servidor, retorno de resultado e auditoria de execucao
 
 ## Stack tecnica
 
 - Backend: ASP.NET Core (.NET 10)
 - Frontend: React + TypeScript + Vite
-- Banco: SQLite
+- Banco: Postgres (stacks Docker local + Dockploy)
+- Fallback local sem Docker: SQLite via `appsettings*.json`
 - ORM: Entity Framework Core 10
 - Auth: JWT Bearer
 - Password Hash: PBKDF2 (com salt)
@@ -65,6 +67,11 @@ Primeira versao funcional entregue e validada com:
 - `GET /api/allowed-processes` (admin)
 - `POST /api/allowed-processes` (admin)
 - `PATCH /api/allowed-processes/{id}/status` (admin)
+- `POST /api/agent/heartbeat` (agent key)
+- `POST /api/agent/next-command` (agent key)
+- `POST /api/agent/commands/{commandId}/result` (agent key)
+- `POST /api/agent-commands/servers/{serverId}/commands` (admin)
+- `GET /api/agent-commands/{commandId}` (admin)
 
 ## Frontend (paginas)
 
@@ -86,6 +93,7 @@ Arquivo: `src/SessionManager.WebApi/appsettings.json`
 - `Jwt:ExpirationMinutes`
 - `AdminSeed:*`
 - `WindowsSession:CommandTimeoutSeconds`
+- `Agent:ApiKey`
 - `Cors:AllowedOrigins`
 
 ## Seed inicial

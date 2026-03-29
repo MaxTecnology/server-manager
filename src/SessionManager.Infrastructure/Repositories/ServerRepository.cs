@@ -19,9 +19,22 @@ public sealed class ServerRepository : IServerRepository
         return await _dbContext.Servers.AsNoTracking().ToListAsync(cancellationToken);
     }
 
+    public async Task<Server?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Servers.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
     public async Task<Server?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Servers.FirstOrDefaultAsync(x => x.Name == name, cancellationToken);
+    }
+
+    public async Task<Server?> GetByHostnameAsync(string hostname, CancellationToken cancellationToken = default)
+    {
+        var normalized = hostname.Trim().ToUpperInvariant();
+        return await _dbContext.Servers.FirstOrDefaultAsync(
+            x => x.Hostname.ToUpper() == normalized || x.Name.ToUpper() == normalized,
+            cancellationToken);
     }
 
     public async Task<Server?> GetDefaultAsync(CancellationToken cancellationToken = default)

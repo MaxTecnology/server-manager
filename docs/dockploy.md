@@ -1,7 +1,8 @@
-# Deploy no Dockploy (API e Front Separados)
+# Deploy no Dockploy (Postgres + API + Front)
 
-Este projeto foi preparado para subir em dois containers:
+Este projeto foi preparado para subir em tres containers:
 
+- `postgres` (banco de dados)
 - `sessionmanager-api` (ASP.NET Core)
 - `sessionmanager-front` (React estatico via Nginx)
 
@@ -13,64 +14,67 @@ Arquivos importantes:
 
 - `Dockerfile` (API)
 - `Dockerfile.front` (Frontend)
-- `docker-compose.dockploy.yml` (exemplo local com os dois)
+- `docker-compose.dockploy.yml` (stack completo para deploy)
+- `.env.dockploy.example` (template de variaveis)
 - `deploy/nginx.front.conf`
 
-## 2) Deploy da API no Dockploy
+## 2) Configurar variaveis de ambiente
 
-Build Context:
+Crie um arquivo `.env.dockploy` na raiz (ou configure no painel do Dockploy) com base em `.env.dockploy.example`.
 
-- raiz do repositorio
+Variaveis obrigatorias:
 
-Dockerfile:
+Banco Postgres:
 
-- `Dockerfile`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
 
-Porta interna:
+API:
 
-- `5000`
+- `SESSIONMANAGER_JWT_SIGNING_KEY`
+- `SESSIONMANAGER_ADMIN_PASSWORD`
+- `SESSIONMANAGER_AGENT_API_KEY`
+- `SESSIONMANAGER_CORS_ORIGIN`
 
-Variaveis (Environment):
+Frontend:
 
-- `ASPNETCORE_ENVIRONMENT=Production`
-- `ConnectionStrings__DefaultConnection=Data Source=/app/data/sessionmanager.db`
-- `Jwt__Issuer=SessionManager`
-- `Jwt__Audience=SessionManager.Internal`
-- `Jwt__SigningKey=<chave forte 32+>`
-- `Jwt__ExpirationMinutes=480`
-- `AdminSeed__Username=admin`
-- `AdminSeed__DisplayName=Administrador`
-- `AdminSeed__Password=<senha inicial forte>`
-- `Cors__AllowedOrigins__0=https://app.seu-dominio.com`
+- `SESSIONMANAGER_FRONT_API_BASE_URL`
 
-Volume persistente:
+## 3) Deploy do stack
 
-- monte `/app/data` em volume (para manter SQLite entre deploys)
-
-## 3) Deploy do Front no Dockploy
-
-Build Context:
-
-- raiz do repositorio
-
-Dockerfile:
-
-- `Dockerfile.front`
-
-Build Arg:
-
-- `VITE_API_BASE_URL=https://api.seu-dominio.com`
-
-Porta interna:
-
-- `80`
+```bash
+docker compose --env-file .env.dockploy -f docker-compose.dockploy.yml up --build -d
+```
 
 ## 4) Validacao
 
 - `GET https://api.seu-dominio.com/api/health` deve retornar `ok`
 - `GET https://app.seu-dominio.com/` deve abrir o login
 - login no front deve chamar `https://api.seu-dominio.com/api/auth/login`
+- `postgres` deve estar `healthy` antes da API iniciar (healthcheck no compose)
 
-## 5) Proximo passo (Agent)
+Volume persistente:
 
-Com API e front separados, o proximo passo e colocar apenas um Agent Windows no RDS de cada cliente, conectado por saida para o control plane (API cloud).
+- volume do Postgres em `/var/lib/postgresql/data`
+
+## 5) Observacoes de operacao
+
+- alteracao de senha do Postgres apos volume criado exige recreacao do volume
+- nao usar credenciais default em producao
+- o compose de deploy foi endurecido para falhar cedo se variavel obrigatoria nao estiver configurada
+
+## 6) Agent Windows com API no Dockploy
+
+- configurar `SESSIONMANAGER_AGENT_API_KEY` forte no deploy
+- instalar o agent no Windows Server usando `deploy/agent/windows/install-agent.ps1`
+- usar `-ApiBaseUrl` apontando para a URL publica da API (ex: `https://api.seu-dominio.com`)
+- usar no script a mesma chave configurada em `SESSIONMANAGER_AGENT_API_KEY`
+
+## 7) Observacao para desenvolvimento local (WSL)
+
+Para ambiente local, use `docker-compose.local.yml`.
+
+Esse arquivo local sobe Postgres + API + Front para desenvolvimento integrado.
+
+Mantenha `docker-compose.dockploy.yml` apenas para deploy.

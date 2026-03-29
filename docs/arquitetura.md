@@ -10,7 +10,7 @@ O sistema segue separacao por camadas:
 - `SessionManager.Infrastructure`
 - `src/frontend` (React)
 
-Objetivo principal: manter regras de negocio fora da camada HTTP e manter infraestrutura substituivel (ex: SQLite para SQL Server/PostgreSQL no futuro).
+Objetivo principal: manter regras de negocio fora da camada HTTP e manter infraestrutura substituivel (provider EF pode variar por ambiente e connection string).
 
 ## Responsabilidade por camada
 
@@ -51,6 +51,7 @@ Entidades:
 - `Role`
 - `UserRole`
 - `Server`
+- `AgentCommand`
 - `AuditLog`
 - `Setting`
 - `AllowedProcess`
@@ -59,7 +60,7 @@ Entidades:
 
 Responsavel por:
 
-- persistencia EF Core/SQLite (`AppDbContext`, repositorios)
+- persistencia EF Core (`AppDbContext`, repositorios)
 - seguranca tecnica (`Pbkdf2PasswordHasher`, `JwtTokenService`)
 - integracao com Windows (`WindowsSessionGateway`, `WindowsCommandExecutor`)
 - seed e setup de banco (`DatabaseInitializer`)
@@ -89,16 +90,24 @@ Fluxo de dependencia planejado:
 3. Frontend guarda token e envia `Authorization: Bearer`.
 4. Controller protegido chama servico da camada `Application`.
 5. Servico executa regra e usa repositorio/gateway.
-6. Auditoria e persistencia sao gravadas no SQLite.
+6. Auditoria e persistencia sao gravadas no banco configurado (Postgres nas stacks Docker local e Dockploy).
 7. API retorna resposta para UI.
+
+## Fluxo tecnico do Agent Windows (MVP)
+
+1. Agent envia heartbeat para `POST /api/agent/heartbeat`.
+2. API registra/atualiza `Server` com metadados do agent.
+3. Admin envia comando para `POST /api/agent-commands/servers/{serverId}/commands`.
+4. Agent faz poll em `POST /api/agent/next-command`.
+5. Agent executa localmente e retorna em `POST /api/agent/commands/{commandId}/result`.
+6. API persiste status em `AgentCommands` e grava auditoria.
 
 ## Fluxo de inicializacao
 
 Na subida do backend:
 
-1. cria pasta `data` se nao existir
-2. aplica migrations pendentes
-3. garante seed de:
+1. aplica migrations pendentes (com retry)
+2. garante seed de:
    - roles
    - servidor default
    - configuracoes basicas

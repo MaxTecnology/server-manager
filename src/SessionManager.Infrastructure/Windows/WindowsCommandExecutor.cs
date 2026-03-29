@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
 using SessionManager.Infrastructure.Options;
@@ -33,7 +34,18 @@ public sealed class WindowsCommandExecutor : IWindowsCommandExecutor
         }
 
         using var process = new Process { StartInfo = startInfo };
-        process.Start();
+        try
+        {
+            process.Start();
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+        {
+            return new CommandExecutionResult(
+                ExitCode: -1,
+                StandardOutput: string.Empty,
+                StandardError: ex.Message.Trim(),
+                TimedOut: false);
+        }
 
         var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);

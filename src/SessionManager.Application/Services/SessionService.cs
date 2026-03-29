@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 using SessionManager.Application.Common;
 using SessionManager.Application.DTOs.Sessions;
 using SessionManager.Application.Interfaces.Persistence;
@@ -43,6 +44,13 @@ public sealed class SessionService : ISessionService
 
         if (!result.IsSuccess || result.Value is null)
         {
+            // In local Docker/WSL (Linux container), native Windows RDS commands are not available.
+            // Keep API responsive by returning an empty list instead of surfacing command-start errors.
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return Result<IReadOnlyList<SessionInfoDto>>.Success(Array.Empty<SessionInfoDto>());
+            }
+
             return Result<IReadOnlyList<SessionInfoDto>>.Failure(result.Error ?? "Falha ao obter sessões.");
         }
 

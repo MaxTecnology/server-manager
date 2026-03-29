@@ -23,15 +23,26 @@ public static class DependencyInjection
     {
         var rawConnectionString = configuration.GetConnectionString("DefaultConnection")
             ?? "Data Source=sessionmanager.db";
-        var connectionString = ResolveSqliteConnectionString(rawConnectionString, contentRootPath);
+        var usePostgres = IsPostgresConnectionString(rawConnectionString);
+        var connectionString = usePostgres
+            ? rawConnectionString
+            : ResolveSqliteConnectionString(rawConnectionString, contentRootPath);
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.Configure<AdminSeedOptions>(configuration.GetSection("AdminSeed"));
         services.Configure<WindowsSessionOptions>(configuration.GetSection("WindowsSession"));
+        services.Configure<AgentOptions>(configuration.GetSection("Agent"));
 
         services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            if (usePostgres)
+            {
+                options.UseNpgsql(connectionString);
+            }
+            else
+            {
+                options.UseSqlite(connectionString);
+            }
         });
 
         services.AddApplication();
@@ -43,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<ISettingRepository, SettingRepository>();
         services.AddScoped<IAllowedProcessRepository, AllowedProcessRepository>();
         services.AddScoped<IServerRepository, ServerRepository>();
+        services.AddScoped<IAgentCommandRepository, AgentCommandRepository>();
 
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
@@ -81,5 +93,12 @@ public static class DependencyInjection
 
         builder.DataSource = fullDataSourcePath;
         return builder.ToString();
+    }
+
+    private static bool IsPostgresConnectionString(string connectionString)
+    {
+        var normalized = connectionString.TrimStart();
+        return normalized.StartsWith("Host=", StringComparison.OrdinalIgnoreCase)
+            || normalized.StartsWith("Server=", StringComparison.OrdinalIgnoreCase);
     }
 }

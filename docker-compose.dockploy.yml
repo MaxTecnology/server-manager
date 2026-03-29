@@ -1,36 +1,56 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sessionmanager}
+      POSTGRES_USER: ${POSTGRES_USER:-sessionmanager}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sessionmanager} -d ${POSTGRES_DB:-sessionmanager}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - sessionmanager_postgres_data:/var/lib/postgresql/data
+
   sessionmanager-api:
     build:
       context: .
       dockerfile: Dockerfile
     image: sessionmanager-api:latest
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "5000:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: Data Source=/app/data/sessionmanager.db
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-sessionmanager};Username=${POSTGRES_USER:-sessionmanager};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       Jwt__Issuer: SessionManager
       Jwt__Audience: SessionManager.Internal
-      Jwt__SigningKey: CHANGE_THIS_KEY_WITH_32_PLUS_CHARACTERS
+      Jwt__SigningKey: ${SESSIONMANAGER_JWT_SIGNING_KEY:?SESSIONMANAGER_JWT_SIGNING_KEY is required}
       Jwt__ExpirationMinutes: 480
       AdminSeed__Username: admin
       AdminSeed__DisplayName: Administrador
-      AdminSeed__Password: CHANGE_THIS_PASSWORD
-      Cors__AllowedOrigins__0: https://app.seu-dominio.com
-    volumes:
-      - sessionmanager_data:/app/data
+      AdminSeed__Password: ${SESSIONMANAGER_ADMIN_PASSWORD:?SESSIONMANAGER_ADMIN_PASSWORD is required}
+      Agent__ApiKey: ${SESSIONMANAGER_AGENT_API_KEY:?SESSIONMANAGER_AGENT_API_KEY is required}
+      Cors__AllowedOrigins__0: ${SESSIONMANAGER_CORS_ORIGIN:?SESSIONMANAGER_CORS_ORIGIN is required}
 
   sessionmanager-front:
     build:
       context: .
       dockerfile: Dockerfile.front
       args:
-        VITE_API_BASE_URL: https://api.seu-dominio.com
+        VITE_API_BASE_URL: ${SESSIONMANAGER_FRONT_API_BASE_URL:?SESSIONMANAGER_FRONT_API_BASE_URL is required}
     image: sessionmanager-front:latest
     restart: unless-stopped
+    depends_on:
+      sessionmanager-api:
+        condition: service_started
     ports:
       - "8080:80"
 
 volumes:
-  sessionmanager_data:
+  sessionmanager_postgres_data:

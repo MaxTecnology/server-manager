@@ -22,3 +22,9 @@ Desktop.ini
 
 # Database
 src/SessionManager.WebApi/data/
+
+# Environment files
+.env
+.env.*
+!.env.local.example
+!.env.dockploy.example

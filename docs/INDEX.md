@@ -34,7 +34,19 @@ Backlog tecnico, riscos conhecidos e trilha de evolucao.
 10. `docs/dockploy.md`
 Deploy da API e frontend separados em container.
 
-11. `docs/codex-requisitos-iniciais.md`
+11. `docs/START-HERE.md`
+Ponto de entrada rapido para onboarding tecnico.
+
+12. `docs/STATUS-ATUAL.md`
+Resumo do estado atual (pronto x pendente).
+
+13. `docs/DEPLOY-CHECKLIST.md`
+Checklist de validacao de local WSL e deploy.
+
+14. `docs/operacao-agent-local.md`
+Guia local de operacao do Agent Windows MVP (API + servico Windows).
+
+15. `docs/codex-requisitos-iniciais.md`
 Prompt/requisitos originais preservados.
 
 ## Leitura recomendada para iniciar melhorias

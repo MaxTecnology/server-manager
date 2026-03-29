@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/SessionManager.Agent.Windows/SessionManager.Agent.Windows.csproj" />
     <Project Path="src/SessionManager.Application/SessionManager.Application.csproj" />
     <Project Path="src/SessionManager.Domain/SessionManager.Domain.csproj" />
     <Project Path="src/SessionManager.Infrastructure/SessionManager.Infrastructure.csproj" />

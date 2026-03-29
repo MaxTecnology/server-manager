@@ -17,30 +17,67 @@ namespace SessionManager.Infrastructure.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
 
+            modelBuilder.Entity("SessionManager.Domain.Entities.AgentCommand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("AssignedAgentId")
+                        .HasMaxLength(120);
+
+                    b.Property<string>("CommandText")
+                        .IsRequired()
+                        .HasMaxLength(400);
+
+                    b.Property<DateTime?>("CompletedAtUtc");
+
+                    b.Property<DateTime>("CreatedAtUtc");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000);
+
+                    b.Property<DateTime?>("PickedAtUtc");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(120);
+
+                    b.Property<string>("ResultOutput")
+                        .HasMaxLength(4000);
+
+                    b.Property<Guid>("ServerId");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20);
+
+                    b.Property<DateTime?>("UpdatedAtUtc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId", "Status", "CreatedAtUtc");
+
+                    b.ToTable("AgentCommands");
+                });
+
             modelBuilder.Entity("SessionManager.Domain.Entities.AllowedProcess", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                    b.Property<bool>("IsActive");
 
                     b.Property<string>("ProcessName")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.HasKey("Id");
 
@@ -53,55 +90,42 @@ namespace SessionManager.Infrastructure.Data.Migrations
             modelBuilder.Entity("SessionManager.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
                     b.Property<string>("ClientIpAddress")
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("ErrorMessage")
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(1000);
 
                     b.Property<string>("MetadataJson")
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(2000);
 
                     b.Property<string>("OperatorUsername")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
                     b.Property<string>("ProcessName")
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
                     b.Property<string>("ServerName")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<int?>("SessionId")
-                        .HasColumnType("INTEGER");
+                    b.Property<int?>("SessionId");
 
-                    b.Property<bool>("Success")
-                        .HasColumnType("INTEGER");
+                    b.Property<bool>("Success");
 
                     b.Property<string>("TargetUsername")
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.HasKey("Id");
 
@@ -113,24 +137,19 @@ namespace SessionManager.Infrastructure.Data.Migrations
             modelBuilder.Entity("SessionManager.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(160);
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(60);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.HasKey("Id");
 
@@ -143,30 +162,34 @@ namespace SessionManager.Infrastructure.Data.Migrations
             modelBuilder.Entity("SessionManager.Domain.Entities.Server", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("AgentId")
+                        .HasMaxLength(120);
+
+                    b.Property<DateTime?>("AgentLastHeartbeatUtc");
+
+                    b.Property<string>("AgentLastIpAddress")
+                        .HasMaxLength(80);
+
+                    b.Property<string>("AgentVersion")
+                        .HasMaxLength(40);
+
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("Hostname")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                    b.Property<bool>("IsActive");
 
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
+                    b.Property<bool>("IsDefault");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.HasKey("Id");
 
@@ -182,29 +205,23 @@ namespace SessionManager.Infrastructure.Data.Migrations
             modelBuilder.Entity("SessionManager.Domain.Entities.Setting", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(260);
 
                     b.Property<string>("Key")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(500);
 
                     b.HasKey("Id");
 
@@ -217,32 +234,25 @@ namespace SessionManager.Infrastructure.Data.Migrations
             modelBuilder.Entity("SessionManager.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("CreatedAtUtc");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(120);
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                    b.Property<bool>("IsActive");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(300);
 
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime?>("UpdatedAtUtc");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(80);
 
                     b.HasKey("Id");
 
@@ -254,17 +264,26 @@ namespace SessionManager.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("SessionManager.Domain.Entities.UserRole", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("UserId");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
+                    b.Property<Guid>("RoleId");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("SessionManager.Domain.Entities.AgentCommand", b =>
+                {
+                    b.HasOne("SessionManager.Domain.Entities.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Server");
                 });
 
             modelBuilder.Entity("SessionManager.Domain.Entities.UserRole", b =>

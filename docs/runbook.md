@@ -31,6 +31,34 @@ dotnet tool run dotnet-ef database update `
 
 ## Rodar em desenvolvimento
 
+## Docker local (WSL)
+
+Opcional: copie `.env.local.example` para `.env.local` para customizar credenciais locais.
+
+```powershell
+docker compose --env-file .env.local -f docker-compose.local.yml up --build -d
+docker compose --env-file .env.local -f docker-compose.local.yml ps
+```
+
+Observacao:
+
+- o `docker-compose.local.yml` usa Postgres em container (`postgres:16-alpine`)
+- a API local usa `ConnectionStrings__DefaultConnection` apontando para `Host=postgres`
+- como a API roda em container Linux no WSL, comandos nativos RDS do Windows (`query`, `rwinsta`, `logoff`, `taskkill`) nao existem no container
+- nesse modo local, dashboard retorna contagens zeradas e `GET /api/sessions` retorna lista vazia quando o comando RDS nao estiver disponivel, sem quebrar a API
+
+Health API:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5000/api/health"
+```
+
+Frontend:
+
+```powershell
+Invoke-WebRequest -Uri "http://localhost:8080/" -UseBasicParsing
+```
+
 ## Backend
 
 ```powershell
@@ -72,6 +100,23 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/health"
 ```powershell
 $body = @{ username = "admin"; password = "Admin@12345" } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" -Method Post -ContentType "application/json" -Body $body
+```
+
+## Smoke test Agent MVP (local)
+
+```powershell
+$agentBody = @{
+  serverName = "WSL-RDS"
+  hostname = "WSL-RDS"
+  agentId = "agent-windows-01"
+  agentVersion = "0.1.0"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/agent/heartbeat" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Headers @{ "X-Agent-Key" = "DEV_ONLY_AGENT_KEY_CHANGE_ME" } `
+  -Body $agentBody
 ```
 
 ## Publicacao para servidor
@@ -141,18 +186,85 @@ sc.exe delete SessionManagerWebApi
 Notas:
 
 - a identidade do servico precisa privilegios para os comandos RDS (`query user`, `rwinsta`, `logoff`, `taskkill`)
-- o servico precisa permissão de escrita em `publish\data`
+- para execucao sem Docker, a API usa SQLite por padrao (arquivo em `./data`)
 
-## Troubleshooting: erro 1053 no servico
+## Agent Windows (servico)
 
-Se no Event Viewer aparecer SQLite Error 14: unable to open database file, o processo do servico esta subindo com caminho relativo para o SQLite.
+Publicar (na maquina de build):
 
-Ajuste ConnectionStrings:DefaultConnection para caminho absoluto, por exemplo:
+```powershell
+pwsh -File .\deploy\agent\windows\publish-agent.ps1 `
+  -Configuration Release `
+  -Runtime win-x64 `
+  -OutputPath .\publish\agent-win-x64
+```
 
-`json
-"ConnectionStrings": {
-  "DefaultConnection": "Data Source=C:\\Apps\\SessionManager\\publish\\data\\sessionmanager.db"
-}
-`
+Instalar no Windows Server (PowerShell admin):
 
-Depois reinicie o servico.
+```powershell
+.\deploy\agent\windows\install-agent.ps1 `
+  -ApiBaseUrl "https://api.seu-dominio.com" `
+  -ApiKey "<AgentApiKey>" `
+  -ServerName "SRV-RDS-01" `
+  -AgentId "agent-srv-rds-01"
+```
+
+Operacao:
+
+```powershell
+Get-Service SessionManagerAgent
+sc.exe query SessionManagerAgent
+```
+
+Atualizar:
+
+```powershell
+.\deploy\agent\windows\update-agent.ps1 -PublishPath .\publish\agent-win-x64
+```
+
+Desinstalar:
+
+```powershell
+.\deploy\agent\windows\uninstall-agent.ps1 -ServiceName "SessionManagerAgent"
+```
+
+Mais detalhes:
+
+- `docs/operacao-agent-local.md`
+
+## Troubleshooting: API nao conecta no Postgres
+
+Sintomas comuns:
+
+- container `sessionmanager-api` reiniciando em loop
+- log com `Npgsql.NpgsqlException` ou timeout de conexao
+
+Checklist:
+
+1. validar se o container `postgres` esta `healthy`
+2. validar `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD`
+3. se senha foi alterada apos criar volume, recriar volume:
+
+```bash
+docker compose --env-file .env.local -f docker-compose.local.yml down -v
+docker compose --env-file .env.local -f docker-compose.local.yml up --build -d
+```
+
+No Dockploy, aplique o mesmo procedimento no stack de deploy (`docker-compose.dockploy.yml`) com cuidado para nao descartar dados de producao.
+
+## Troubleshooting: `NetworkError when attempting to fetch resource` no login
+
+Causa comum em WSL/local:
+
+- frontend buildado com `SESSIONMANAGER_FRONT_API_BASE_URL` de deploy (ex: `https://api.seu-dominio.com`)
+- API local em `http://localhost:5000`
+
+Correcao:
+
+```bash
+docker compose --env-file .env.dockploy -f docker-compose.dockploy.yml down
+docker compose --env-file .env.local -f docker-compose.local.yml down -v
+docker compose --env-file .env.local -f docker-compose.local.yml up --build -d
+```
+
+Depois disso, o frontend local volta a apontar para `http://localhost:5000`.

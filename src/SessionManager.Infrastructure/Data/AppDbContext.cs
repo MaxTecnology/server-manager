@@ -15,6 +15,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Server> Servers => Set<Server>();
+    public DbSet<AgentCommand> AgentCommands => Set<AgentCommand>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Setting> Settings => Set<Setting>();
     public DbSet<AllowedProcess> AllowedProcesses => Set<AllowedProcess>();
@@ -52,8 +53,28 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Name).HasMaxLength(80).IsRequired();
             entity.Property(x => x.Hostname).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.AgentId).HasMaxLength(120);
+            entity.Property(x => x.AgentVersion).HasMaxLength(40);
+            entity.Property(x => x.AgentLastIpAddress).HasMaxLength(80);
             entity.HasIndex(x => x.Name).IsUnique();
             entity.HasIndex(x => x.Hostname).IsUnique();
+        });
+
+        modelBuilder.Entity<AgentCommand>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.RequestedBy).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.CommandText).HasMaxLength(400).IsRequired();
+            entity.Property(x => x.Status).HasMaxLength(20).IsRequired();
+            entity.Property(x => x.AssignedAgentId).HasMaxLength(120);
+            entity.Property(x => x.ResultOutput).HasMaxLength(4000);
+            entity.Property(x => x.ErrorMessage).HasMaxLength(2000);
+            entity.HasIndex(x => new { x.ServerId, x.Status, x.CreatedAtUtc });
+
+            entity.HasOne(x => x.Server)
+                .WithMany()
+                .HasForeignKey(x => x.ServerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AuditLog>(entity =>
