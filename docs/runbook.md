@@ -48,6 +48,7 @@ Observacao:
   - `SESSIONMANAGER_POSTGRES_PORT` (default `5432`)
   - `SESSIONMANAGER_API_PORT` (default `5000`)
   - `SESSIONMANAGER_FRONT_PORT` (default `8080`)
+- Postgres fica com bind em `127.0.0.1` para evitar exposicao externa
 - como a API roda em container Linux no WSL, dados de sessao devem vir do Agent Windows (heartbeat + snapshot)
 - sem snapshot recente do agent, `/api/sessions` pode retornar erro de snapshot desatualizado
 

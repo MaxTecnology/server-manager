@@ -51,6 +51,7 @@ Variaveis opcionais de porta:
 
 - `SESSIONMANAGER_API_PORT` (default `5000`)
 - `SESSIONMANAGER_FRONT_PORT` (default `8080`)
+- `SESSIONMANAGER_POSTGRES_PORT` (default `5432`, bind local para tunnel)
 
 Persistencia:
 

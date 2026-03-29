@@ -45,6 +45,7 @@ Portas de host (opcionais):
 
 - `SESSIONMANAGER_API_PORT` (default `5000`)
 - `SESSIONMANAGER_FRONT_PORT` (default `8080`)
+- `SESSIONMANAGER_POSTGRES_PORT` (default `5432`, bind em `127.0.0.1`)
 
 ## 3) Deploy do stack
 
@@ -70,6 +71,21 @@ Volume persistente:
 - o compose de deploy foi endurecido para falhar cedo se variavel obrigatoria nao estiver configurada
 - se `8080` estiver ocupada, ajuste `SESSIONMANAGER_FRONT_PORT` (ex: `18080`)
 - se `5000` estiver ocupada, ajuste `SESSIONMANAGER_API_PORT` (ex: `15000`)
+- Postgres fica bindado em `127.0.0.1` (nao publico)
+
+## 5.1 Acesso ao Postgres via tunnel SSH
+
+Exemplo (na sua maquina local):
+
+```bash
+ssh -L 15432:127.0.0.1:${SESSIONMANAGER_POSTGRES_PORT:-5432} usuario@ip-do-servidor
+```
+
+Depois conecte no cliente SQL com:
+
+- host: `127.0.0.1`
+- port: `15432`
+- db/user/password: valores de `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 
 ## 6) Agent Windows com API no Dockploy
 
