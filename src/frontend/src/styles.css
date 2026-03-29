@@ -266,6 +266,30 @@ th {
   color: var(--error-text);
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.16rem 0.52rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.status-online {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.status-offline {
+  background: #ffe9cc;
+  color: #8f4a00;
+}
+
+.status-unknown {
+  background: #e5e7eb;
+  color: #334155;
+}
+
 .pagination {
   margin-top: 1rem;
   display: flex;

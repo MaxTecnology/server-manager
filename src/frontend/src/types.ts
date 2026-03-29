@@ -77,4 +77,10 @@ export type ServerItem = {
   hostname: string;
   isDefault: boolean;
   isActive: boolean;
+  agentId: string | null;
+  agentVersion: string | null;
+  agentLastHeartbeatUtc: string | null;
+  agentSessionSnapshotUtc: string | null;
+  isAgentOnline: boolean;
+  hasRecentSnapshot: boolean;
 };

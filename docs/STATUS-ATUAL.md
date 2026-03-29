@@ -22,6 +22,7 @@ Ultima atualizacao: 2026-03-29
   - registro/heartbeat por servidor
   - envio de snapshot de sessoes (`query user`) para API
   - dashboard e `/sessions` consumindo snapshot do agent em ambiente Linux/WSL
+  - menu `Agentes` no frontend com status online/offline e ultimo heartbeat/snapshot
   - enfileiramento de comando por servidor
   - poll do proximo comando pelo agent
   - retorno de resultado da execucao
@@ -35,4 +36,4 @@ Ultima atualizacao: 2026-03-29
 - modelo de seguranca do agent por cliente (rotacao/segredo por tenant)
 - telemetria de disponibilidade do agent (offline/timeout)
 - politica de expiracao/retenção da fila de comandos
-- tela de observabilidade do agent no frontend (heartbeat/snapshot/ultima coleta)
+- detalhe por agente (fila local, retries, ultimo erro de execucao)

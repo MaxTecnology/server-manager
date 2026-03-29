@@ -277,7 +277,27 @@ Request:
 
 Permissao: `Administrator` ou `Operator`
 
-Retorna lista cadastrada no banco com indicador de default.
+Retorna lista cadastrada no banco com status operacional do agent.
+
+Response 200:
+
+```json
+[
+  {
+    "id": "guid",
+    "name": "SRV-RDS-G2A",
+    "hostname": "SRV-RDS-G2A",
+    "isDefault": true,
+    "isActive": true,
+    "agentId": "SRV-RDS-G2A-agent",
+    "agentVersion": "0.1.0",
+    "agentLastHeartbeatUtc": "2026-03-29T20:10:00Z",
+    "agentSessionSnapshotUtc": "2026-03-29T20:09:50Z",
+    "isAgentOnline": true,
+    "hasRecentSnapshot": true
+  }
+]
+```
 
 ## Agent (MVP)
 

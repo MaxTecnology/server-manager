@@ -24,6 +24,9 @@ export function AppLayout() {
           <NavLink className={({ isActive }) => makeClassName(isActive)} to="/sessions">
             Sessões
           </NavLink>
+          <NavLink className={({ isActive }) => makeClassName(isActive)} to="/agents">
+            Agentes
+          </NavLink>
           <NavLink className={({ isActive }) => makeClassName(isActive)} to="/audit">
             Auditoria
           </NavLink>

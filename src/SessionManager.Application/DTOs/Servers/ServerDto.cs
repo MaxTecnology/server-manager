@@ -5,4 +5,10 @@ public sealed record ServerDto(
     string Name,
     string Hostname,
     bool IsDefault,
-    bool IsActive);
+    bool IsActive,
+    string? AgentId,
+    string? AgentVersion,
+    DateTime? AgentLastHeartbeatUtc,
+    DateTime? AgentSessionSnapshotUtc,
+    bool IsAgentOnline,
+    bool HasRecentSnapshot);

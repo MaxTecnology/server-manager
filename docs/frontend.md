@@ -21,6 +21,7 @@
 - `/login`
 - `/dashboard`
 - `/sessions`
+- `/agents`
 - `/audit`
 - `/settings` (somente admin)
 - `/users` (somente admin)
@@ -60,6 +61,13 @@ Comportamento atual:
 - consome `/api/audit` com paginação
 - filtro por termo de busca
 - lista eventos e resultado de operacao
+
+## Agentes
+
+- consome `/api/servers`
+- exibe status `Online/Offline/Sem agent` por servidor
+- mostra ultimo heartbeat e ultimo snapshot
+- atualizacao automatica a cada 30 segundos
 
 ## Configuracoes (admin)
 
