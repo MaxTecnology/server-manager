@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IAllowedProcessService, AllowedProcessService>();
         services.AddScoped<IServerService, ServerService>();
         services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<IActiveDirectoryService, ActiveDirectoryService>();
         return services;
     }
 }

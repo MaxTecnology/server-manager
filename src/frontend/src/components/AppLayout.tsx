@@ -32,6 +32,9 @@ export function AppLayout() {
           </NavLink>
           {auth.isAdministrator && (
             <>
+              <NavLink className={({ isActive }) => makeClassName(isActive)} to="/active-directory">
+                Active Directory
+              </NavLink>
               <NavLink className={({ isActive }) => makeClassName(isActive)} to="/settings">
                 Configurações
               </NavLink>

@@ -33,6 +33,8 @@ public sealed class ServerService : IServerService
                 s.Hostname,
                 s.IsDefault,
                 s.IsActive,
+                s.SupportsRds,
+                s.SupportsAd,
                 s.AgentId,
                 s.AgentVersion,
                 s.AgentLastHeartbeatUtc,

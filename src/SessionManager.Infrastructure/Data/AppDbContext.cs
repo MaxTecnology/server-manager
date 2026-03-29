@@ -53,6 +53,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Name).HasMaxLength(80).IsRequired();
             entity.Property(x => x.Hostname).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.SupportsRds).HasDefaultValue(true);
+            entity.Property(x => x.SupportsAd).HasDefaultValue(false);
             entity.Property(x => x.AgentId).HasMaxLength(120);
             entity.Property(x => x.AgentVersion).HasMaxLength(40);
             entity.Property(x => x.AgentLastIpAddress).HasMaxLength(80);
@@ -65,7 +67,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
         {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.RequestedBy).HasMaxLength(120).IsRequired();
-            entity.Property(x => x.CommandText).HasMaxLength(400).IsRequired();
+            entity.Property(x => x.CommandText).HasMaxLength(4000).IsRequired();
             entity.Property(x => x.Status).HasMaxLength(20).IsRequired();
             entity.Property(x => x.AssignedAgentId).HasMaxLength(120);
             entity.Property(x => x.ResultOutput).HasMaxLength(4000);

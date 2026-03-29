@@ -11,6 +11,7 @@ Ultima atualizacao: 2026-03-29
 5. `docs/DEPLOY-CHECKLIST.md`
 6. `docs/dockploy.md`
 7. `docs/operacao-agent-local.md`
+8. `docs/TAREFAS-AD-RDS.md`
 
 ## 2) Comandos rapidos (local WSL)
 
@@ -46,10 +47,12 @@ curl http://localhost:${SESSIONMANAGER_FRONT_PORT:-8080}/
 Fluxo implementado:
 
 1. agent envia heartbeat e registra/atualiza servidor
-2. agent envia snapshot de sessoes (saida do `query user`)
-3. frontend consulta `/api/sessions` e `/api/dashboard/metrics` com base no snapshot mais recente
-4. opcionalmente, admin enfileira comando por servidor
-5. execucao de comando (quando usada) fica auditada em `AuditLogs`
+2. heartbeat atualiza capability do servidor (`SupportsRds`/`SupportsAd`)
+3. agent envia snapshot de sessoes (saida do `query user`) quando `SupportsRds=true`
+4. frontend consulta `/api/sessions` e `/api/dashboard/metrics` com base no snapshot mais recente
+5. opcionalmente, admin enfileira comando por servidor
+6. operacoes AD ficam em `/active-directory` (somente admin) quando `SupportsAd=true`
+7. execucao de comando (quando usada) fica auditada em `AuditLogs`
 
 Operacao do agent (publish + servico Windows):
 

@@ -78,7 +78,7 @@ pwsh -File .\deploy\agent\windows\publish-agent.ps1 -Configuration Release -Runt
 2. instalar no Windows Server (PowerShell admin):
 
 ```powershell
-.\install-agent.ps1 -ApiBaseUrl "https://api.seu-dominio.com" -ApiKey "<AgentApiKey>" -ServerName "SRV-RDS-01" -AgentId "agent-srv-rds-01"
+.\install-agent.ps1 -ApiBaseUrl "https://api.seu-dominio.com" -ApiKey "<AgentApiKey>" -ServerName "SRV-RDS-01" -AgentId "agent-srv-rds-01" -SupportsRds $true -SupportsAd $false
 ```
 
 3. validar servico:
@@ -89,6 +89,14 @@ sc.exe query SessionManagerAgent
 ```
 
 4. validar que heartbeat + snapshot atualizam servidor e aparecem no frontend.
+
+## 5) AD MVP inicial (opcional)
+
+1. garantir que o servidor alvo do agent tenha módulo `ActiveDirectory` disponível
+2. garantir que o agent foi instalado com `-SupportsAd $true`
+3. enfileirar criação de usuário em `POST /api/ad/servers/{serverId}/users`
+4. enfileirar reset de senha em `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
+5. acompanhar execução em `GET /api/agent-commands/{commandId}`
 
 Referencia operacional detalhada:
 

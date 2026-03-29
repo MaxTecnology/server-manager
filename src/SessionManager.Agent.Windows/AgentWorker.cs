@@ -13,6 +13,7 @@ public sealed class AgentWorker : BackgroundService
     private readonly IOptions<AgentOptions> _options;
     private readonly AgentApiClient _apiClient;
     private readonly CommandExecutionService _commandExecutionService;
+    private readonly SecureCommandCodec _secureCommandCodec;
     private readonly PendingCommandResultStore _pendingStore;
     private readonly ILogger<AgentWorker> _logger;
 
@@ -20,12 +21,14 @@ public sealed class AgentWorker : BackgroundService
         IOptions<AgentOptions> options,
         AgentApiClient apiClient,
         CommandExecutionService commandExecutionService,
+        SecureCommandCodec secureCommandCodec,
         PendingCommandResultStore pendingStore,
         ILogger<AgentWorker> logger)
     {
         _options = options;
         _apiClient = apiClient;
         _commandExecutionService = commandExecutionService;
+        _secureCommandCodec = secureCommandCodec;
         _pendingStore = pendingStore;
         _logger = logger;
     }
@@ -40,10 +43,12 @@ public sealed class AgentWorker : BackgroundService
         var nextHeartbeatAt = DateTimeOffset.MinValue;
 
         _logger.LogInformation(
-            "Agent iniciado. AgentId={AgentId} Hostname={Hostname} Server={ServerName}",
+            "Agent iniciado. AgentId={AgentId} Hostname={Hostname} Server={ServerName} SupportsRds={SupportsRds} SupportsAd={SupportsAd}",
             identity.AgentId,
             identity.Hostname,
-            identity.ServerName);
+            identity.ServerName,
+            identity.SupportsRds,
+            identity.SupportsAd);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -54,7 +59,10 @@ public sealed class AgentWorker : BackgroundService
                 if (DateTimeOffset.UtcNow >= nextHeartbeatAt)
                 {
                     await SendHeartbeatAsync(identity, stoppingToken);
-                    await SendSessionSnapshotAsync(identity, options, stoppingToken);
+                    if (identity.SupportsRds)
+                    {
+                        await SendSessionSnapshotAsync(identity, options, stoppingToken);
+                    }
                     nextHeartbeatAt = DateTimeOffset.UtcNow.Add(heartbeatInterval);
                 }
 
@@ -89,7 +97,9 @@ public sealed class AgentWorker : BackgroundService
             ServerName = identity.ServerName,
             Hostname = identity.Hostname,
             AgentId = identity.AgentId,
-            AgentVersion = identity.AgentVersion
+            AgentVersion = identity.AgentVersion,
+            SupportsRds = identity.SupportsRds,
+            SupportsAd = identity.SupportsAd
         }, cancellationToken);
 
         if (heartbeat.Success)
@@ -123,6 +133,8 @@ public sealed class AgentWorker : BackgroundService
             Hostname = identity.Hostname,
             AgentId = identity.AgentId,
             AgentVersion = identity.AgentVersion,
+            SupportsRds = identity.SupportsRds,
+            SupportsAd = identity.SupportsAd,
             SessionsOutput = Truncate(output, options.MaxResultOutputLength),
             CapturedAtUtc = DateTime.UtcNow
         }, cancellationToken);
@@ -170,8 +182,34 @@ public sealed class AgentWorker : BackgroundService
 
         _logger.LogInformation("Comando recebido. CommandId={CommandId}", command.CommandId);
 
+        if (!_secureCommandCodec.TryDecodeCommand(command.CommandText, out var commandText, out var decodeError))
+        {
+            var decodePayload = new AgentCommandResultRequestDto
+            {
+                Success = false,
+                ResultOutput = null,
+                ErrorMessage = decodeError ?? "Falha ao decodificar comando."
+            };
+
+            var decodeSend = await _apiClient.SendCommandResultAsync(command.CommandId, decodePayload, cancellationToken);
+            if (!decodeSend.Success)
+            {
+                await _pendingStore.EnqueueAsync(new PendingCommandResult
+                {
+                    CommandId = command.CommandId,
+                    Success = false,
+                    ResultOutput = null,
+                    ErrorMessage = decodePayload.ErrorMessage,
+                    CapturedAtUtc = DateTime.UtcNow
+                }, cancellationToken);
+            }
+
+            _logger.LogWarning("Comando {CommandId} rejeitado por falha de decodificacao.", command.CommandId);
+            return;
+        }
+
         var execution = await _commandExecutionService.ExecuteAsync(
-            command.CommandText,
+            commandText,
             options.CommandTimeoutSeconds,
             cancellationToken);
 
@@ -281,10 +319,12 @@ public sealed class AgentWorker : BackgroundService
         var serverName = Normalize(options.ServerName) ?? machine;
         var hostname = Normalize(options.Hostname) ?? serverName;
         var agentId = Normalize(options.AgentId) ?? $"{machine}-agent";
+        var supportsRds = options.SupportsRds;
+        var supportsAd = options.SupportsAd;
 
         var version = typeof(AgentWorker).Assembly.GetName().Version?.ToString() ?? "0.1.0";
 
-        return new AgentIdentity(agentId, serverName, hostname, version);
+        return new AgentIdentity(agentId, serverName, hostname, version, supportsRds, supportsAd);
     }
 
     private static string? Normalize(string? value)

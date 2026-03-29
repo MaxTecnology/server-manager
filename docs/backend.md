@@ -36,6 +36,7 @@ Configurado em `Program.cs`:
 - `AuditController`
 - `ServersController`
 - `AgentCommandsController` (admin)
+- `ActiveDirectoryController` (admin)
 - `SettingsController` (admin)
 - `UsersController` (admin)
 - `AllowedProcessesController` (admin)
@@ -53,6 +54,7 @@ Principais classes em `Application/Services`:
 - `AllowedProcessService`
 - `ServerService`
 - `AgentService`
+- `ActiveDirectoryService`
 
 ## Persistencia
 
@@ -104,6 +106,16 @@ No MVP de Agent:
 
 - `AGENT_COMMAND_ENQUEUE` (quando admin envia comando)
 - `AGENT_COMMAND_RESULT` (quando agent retorna execucao)
+
+No MVP inicial de AD:
+
+- operacoes de criar usuario/reset de senha sao enfileiradas via agent
+- payload de comando AD fica protegido (criptografado) no banco
+- API bloqueia operacao AD quando servidor nao tem `SupportsAd`
+
+No fluxo de sessoes (RDS):
+
+- API bloqueia operacoes de sessao quando servidor nao tem `SupportsRds`
 
 ## Convencoes adotadas
 

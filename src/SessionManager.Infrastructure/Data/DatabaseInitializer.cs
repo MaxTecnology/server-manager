@@ -77,6 +77,8 @@ public sealed class DatabaseInitializer
                 Hostname = machine,
                 IsDefault = true,
                 IsActive = true,
+                SupportsRds = true,
+                SupportsAd = false,
                 CreatedAtUtc = _clock.UtcNow
             });
             return;

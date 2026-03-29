@@ -27,7 +27,7 @@ namespace SessionManager.Infrastructure.Data.Migrations
 
                     b.Property<string>("CommandText")
                         .IsRequired()
-                        .HasMaxLength(400);
+                        .HasMaxLength(4000);
 
                     b.Property<DateTime?>("CompletedAtUtc");
 
@@ -189,6 +189,12 @@ namespace SessionManager.Infrastructure.Data.Migrations
                     b.Property<bool>("IsActive");
 
                     b.Property<bool>("IsDefault");
+
+                    b.Property<bool>("SupportsAd")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("SupportsRds")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
+import { ActiveDirectoryPage } from "./pages/ActiveDirectoryPage";
 import { AgentsPage } from "./pages/AgentsPage";
 import { AuditPage } from "./pages/AuditPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -36,6 +37,14 @@ export default function App() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="agents" element={<AgentsPage />} />
         <Route path="sessions" element={<SessionsPage />} />
+        <Route
+          path="active-directory"
+          element={
+            <AdminRoute>
+              <ActiveDirectoryPage />
+            </AdminRoute>
+          }
+        />
         <Route path="audit" element={<AuditPage />} />
         <Route
           path="settings"

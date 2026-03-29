@@ -21,6 +21,7 @@
 - `/login`
 - `/dashboard`
 - `/sessions`
+- `/active-directory` (somente admin)
 - `/agents`
 - `/audit`
 - `/settings` (somente admin)
@@ -38,6 +39,7 @@ Importante: o controle real de seguranca continua no backend.
 Comportamento atual:
 
 - carrega servidores via `/api/servers`
+- filtra apenas servidores com `supportsRds = true`
 - seleciona servidor default
 - carrega sessoes via `/api/sessions`
 - atualizacao automatica a cada 30 segundos
@@ -66,8 +68,16 @@ Comportamento atual:
 
 - consome `/api/servers`
 - exibe status `Online/Offline/Sem agent` por servidor
+- exibe capacidades por servidor (`RDS`, `AD`)
 - mostra ultimo heartbeat e ultimo snapshot
 - atualizacao automatica a cada 30 segundos
+
+## Active Directory (admin)
+
+- consome `/api/servers` filtrando `supportsAd = true`
+- enfileira criacao de usuario via `POST /api/ad/servers/{serverId}/users`
+- enfileira reset de senha via `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
+- acompanha status via `GET /api/agent-commands/{commandId}` com polling
 
 ## Configuracoes (admin)
 

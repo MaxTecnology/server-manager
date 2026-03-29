@@ -20,6 +20,7 @@ Ultima atualizacao: 2026-03-29
 - Ambiente local WSL separado de deploy via `docker-compose.local.yml`
 - Agent MVP:
   - registro/heartbeat por servidor
+  - capabilities por servidor (`SupportsRds`, `SupportsAd`) sincronizadas pelo heartbeat
   - envio de snapshot de sessoes (`query user`) para API
   - dashboard e `/sessions` consumindo snapshot do agent em ambiente Linux/WSL
   - menu `Agentes` no frontend com status online/offline e ultimo heartbeat/snapshot
@@ -29,6 +30,12 @@ Ultima atualizacao: 2026-03-29
   - auditoria de envio e resultado de comando
   - worker Windows (`SessionManager.Agent.Windows`) com heartbeat/poll/execucao/retry local
   - scripts de instalacao como servico (`deploy/agent/windows`)
+- AD MVP inicial:
+  - endpoint admin para criar usuario AD via agent
+  - endpoint admin para reset de senha AD via agent
+  - comando sensivel AD protegido (criptografado) em repouso no banco
+  - tela admin `Active Directory` no frontend (criar/reset + acompanhamento de status)
+  - bloqueio backend/frontend por capability do servidor (RDS x AD)
 
 ## O que falta (proxima etapa apos MVP)
 
@@ -37,3 +44,4 @@ Ultima atualizacao: 2026-03-29
 - telemetria de disponibilidade do agent (offline/timeout)
 - politica de expiracao/retenção da fila de comandos
 - detalhe por agente (fila local, retries, ultimo erro de execucao)
+- fluxo AD expandido no frontend (consulta de usuarios AD, bloqueio/desbloqueio, grupos)

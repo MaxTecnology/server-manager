@@ -226,7 +226,9 @@ Instalar no Windows Server (PowerShell admin):
   -ApiBaseUrl "https://api.seu-dominio.com" `
   -ApiKey "<AgentApiKey>" `
   -ServerName "SRV-RDS-01" `
-  -AgentId "agent-srv-rds-01"
+  -AgentId "agent-srv-rds-01" `
+  -SupportsRds $true `
+  -SupportsAd $false
 ```
 
 Operacao:
@@ -251,6 +253,47 @@ Desinstalar:
 Mais detalhes:
 
 - `docs/operacao-agent-local.md`
+
+## AD via Agent (MVP inicial)
+
+Pré-requisito no servidor do agent:
+
+- módulo PowerShell `ActiveDirectory` disponível
+- agent instalado com `SupportsAd = true`
+
+Pelo frontend (admin):
+
+- acesse `/active-directory`
+- selecione um servidor com capability AD
+- use formularios de criar usuario/reset de senha
+- acompanhe status pelo `CommandId`
+
+Exemplo criar usuário AD:
+
+```powershell
+$api = "https://api.seu-dominio.com"
+$login = Invoke-RestMethod -Uri "$api/api/auth/login" -Method Post -ContentType "application/json" -Body (@{
+  username="admin"; password="SENHA_ADMIN"
+} | ConvertTo-Json)
+$auth = @{ Authorization = "Bearer $($login.accessToken)" }
+
+$create = Invoke-RestMethod -Uri "$api/api/ad/servers/<serverId>/users" `
+  -Method Post -Headers $auth -ContentType "application/json" `
+  -Body (@{
+    username = "jose.silva"
+    displayName = "Jose Silva"
+    password = "SenhaForte@123"
+    userPrincipalName = "jose.silva@empresa.local"
+    organizationalUnitPath = "OU=Usuarios,DC=empresa,DC=local"
+    changePasswordAtLogon = $true
+  } | ConvertTo-Json)
+```
+
+Acompanhar status:
+
+```powershell
+Invoke-RestMethod -Uri "$api/api/agent-commands/$($create.id)" -Headers $auth
+```
 
 ## Troubleshooting: API nao conecta no Postgres
 

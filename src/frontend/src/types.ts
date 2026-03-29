@@ -77,10 +77,43 @@ export type ServerItem = {
   hostname: string;
   isDefault: boolean;
   isActive: boolean;
+  supportsRds: boolean;
+  supportsAd: boolean;
   agentId: string | null;
   agentVersion: string | null;
   agentLastHeartbeatUtc: string | null;
   agentSessionSnapshotUtc: string | null;
   isAgentOnline: boolean;
   hasRecentSnapshot: boolean;
+};
+
+export type AgentCommand = {
+  id: string;
+  serverId: string;
+  serverName: string;
+  hostname: string;
+  requestedBy: string;
+  commandText: string;
+  status: string;
+  requestedAtUtc: string;
+  pickedAtUtc: string | null;
+  completedAtUtc: string | null;
+  assignedAgentId: string | null;
+  resultOutput: string | null;
+  errorMessage: string | null;
+};
+
+export type CreateAdUserRequest = {
+  username: string;
+  displayName: string;
+  password: string;
+  userPrincipalName?: string;
+  organizationalUnitPath?: string;
+  changePasswordAtLogon: boolean;
+};
+
+export type ResetAdUserPasswordRequest = {
+  password: string;
+  changePasswordAtLogon: boolean;
+  enableAccount: boolean;
 };

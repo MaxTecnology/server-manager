@@ -15,7 +15,9 @@ param(
     [string]$Hostname,
     [int]$HeartbeatIntervalSeconds = 30,
     [int]$PollIntervalSeconds = 5,
-    [int]$CommandTimeoutSeconds = 120
+    [int]$CommandTimeoutSeconds = 120,
+    [bool]$SupportsRds = $true,
+    [bool]$SupportsAd = $false
 )
 
 Set-StrictMode -Version Latest
@@ -49,6 +51,10 @@ if (-not (Test-Path $PublishPath)) {
     throw "PublishPath nao encontrado: $PublishPath"
 }
 
+if (-not $SupportsRds -and -not $SupportsAd) {
+    throw "Informe ao menos uma capacidade: SupportsRds ou SupportsAd."
+}
+
 $resolvedAgentId = if ([string]::IsNullOrWhiteSpace($AgentId)) { "$env:COMPUTERNAME-agent" } else { $AgentId.Trim() }
 $resolvedServerName = if ([string]::IsNullOrWhiteSpace($ServerName)) { $env:COMPUTERNAME } else { $ServerName.Trim() }
 $resolvedHostname = if ([string]::IsNullOrWhiteSpace($Hostname)) { $resolvedServerName } else { $Hostname.Trim() }
@@ -80,6 +86,8 @@ $config = @{
         HeartbeatIntervalSeconds = $HeartbeatIntervalSeconds
         PollIntervalSeconds = $PollIntervalSeconds
         CommandTimeoutSeconds = $CommandTimeoutSeconds
+        SupportsRds = $SupportsRds
+        SupportsAd = $SupportsAd
         DataDirectory = $dataDirectory
         MaxResultOutputLength = 4000
     }

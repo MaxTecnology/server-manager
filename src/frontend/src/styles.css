@@ -259,6 +259,11 @@ th {
   color: #25405e;
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .error-banner {
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
@@ -288,6 +293,28 @@ th {
 .status-unknown {
   background: #e5e7eb;
   color: #334155;
+}
+
+.capability-list {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.capability-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.16rem 0.52rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  background: #dcedff;
+  color: #114272;
+}
+
+.capability-none {
+  background: #e5e7eb;
+  color: #475569;
 }
 
 .pagination {
@@ -377,6 +404,19 @@ th {
 .toast-info {
   background: #e1efff;
   color: #0e3e71;
+}
+
+.muted-text {
+  color: var(--text-subtle);
+}
+
+.command-output {
+  background: #0f233f;
+  color: #e8f3ff;
+  border-radius: 10px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 1100px) {

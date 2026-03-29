@@ -4,4 +4,6 @@ public sealed record AgentIdentity(
     string AgentId,
     string ServerName,
     string Hostname,
-    string AgentVersion);
+    string AgentVersion,
+    bool SupportsRds,
+    bool SupportsAd);

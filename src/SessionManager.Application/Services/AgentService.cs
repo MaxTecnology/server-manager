@@ -50,6 +50,7 @@ public sealed class AgentService : IAgentService
         server.AgentVersion = Truncate(NormalizeValue(request.AgentVersion), 40);
         server.AgentLastHeartbeatUtc = now;
         server.AgentLastIpAddress = Truncate(clientIpAddress, 80);
+        ApplyCapabilities(server, request.SupportsRds, request.SupportsAd);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -80,6 +81,7 @@ public sealed class AgentService : IAgentService
         server.AgentVersion = Truncate(NormalizeValue(request.AgentVersion), 40);
         server.AgentLastHeartbeatUtc = now;
         server.AgentLastIpAddress = Truncate(clientIpAddress, 80);
+        ApplyCapabilities(server, request.SupportsRds, request.SupportsAd);
         server.AgentSessionSnapshotOutput = Truncate(NormalizeValue(request.SessionsOutput), 20000);
         server.AgentSessionSnapshotUtc = capturedAtUtc;
 
@@ -105,9 +107,9 @@ public sealed class AgentService : IAgentService
             return Result<AgentCommandDto>.Failure("Comando é obrigatório.");
         }
 
-        if (commandText.Length > 400)
+        if (commandText.Length > 4000)
         {
-            return Result<AgentCommandDto>.Failure("Comando excede limite de 400 caracteres.");
+            return Result<AgentCommandDto>.Failure("Comando excede limite de 4000 caracteres.");
         }
 
         var server = await _serverRepository.GetByIdAsync(serverId, cancellationToken);
@@ -302,6 +304,8 @@ public sealed class AgentService : IAgentService
                 Hostname = Truncate(normalizedHostname, 120)!,
                 IsActive = true,
                 IsDefault = false,
+                SupportsRds = true,
+                SupportsAd = false,
                 CreatedAtUtc = now
             };
             _serverRepository.Add(server);
@@ -313,6 +317,19 @@ public sealed class AgentService : IAgentService
         server.IsActive = true;
         server.UpdatedAtUtc = now;
         return server;
+    }
+
+    private static void ApplyCapabilities(Server server, bool? supportsRds, bool? supportsAd)
+    {
+        if (supportsRds.HasValue)
+        {
+            server.SupportsRds = supportsRds.Value;
+        }
+
+        if (supportsAd.HasValue)
+        {
+            server.SupportsAd = supportsAd.Value;
+        }
     }
 
     private static DateTime NormalizeCapturedAt(DateTime? capturedAtUtc, DateTime now)

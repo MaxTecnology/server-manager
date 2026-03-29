@@ -57,7 +57,7 @@ Esperado:
 curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/heartbeat \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
-  -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0"}'
+  -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0","supportsRds":true,"supportsAd":false}'
 ```
 
 ### 4.2 Enviar snapshot de sessoes
@@ -66,7 +66,7 @@ curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/heartbe
 curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/session-snapshot \
   -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
   -H "Content-Type: application/json" \
-  -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0","capturedAtUtc":"2026-03-29T19:40:45Z","sessionsOutput":" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME\n>admin                 rdp-tcp#1          3   Active      none   3/29/2026 10:00 AM"}'
+  -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0","supportsRds":true,"supportsAd":false,"capturedAtUtc":"2026-03-29T19:40:45Z","sessionsOutput":" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME\n>admin                 rdp-tcp#1          3   Active      none   3/29/2026 10:00 AM"}'
 ```
 
 ### 4.3 Login admin
@@ -146,7 +146,9 @@ No Windows Server (PowerShell como Administrador):
   -ApiBaseUrl "http://SEU_API:5000" `
   -ApiKey "DEV_ONLY_AGENT_KEY_CHANGE_ME" `
   -ServerName "SRV-RDS-01" `
-  -AgentId "agent-srv-rds-01"
+  -AgentId "agent-srv-rds-01" `
+  -SupportsRds $true `
+  -SupportsAd $false
 ```
 
 Observacoes:
@@ -154,6 +156,10 @@ Observacoes:
 - se API estiver no mesmo host do agent, pode usar `http://localhost:5000`
 - para Dockploy/producao, usar URL final de API (`https://api.seu-dominio.com`)
 - `ApiKey` deve ser igual a `Agent:ApiKey` da API
+- perfis recomendados:
+  - servidor RDS: `-SupportsRds $true -SupportsAd $false`
+  - servidor AD: `-SupportsRds $false -SupportsAd $true`
+  - servidor misto: `-SupportsRds $true -SupportsAd $true`
 
 Servico criado:
 

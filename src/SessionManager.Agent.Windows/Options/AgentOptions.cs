@@ -19,6 +19,8 @@ public sealed class AgentOptions
     public int HeartbeatIntervalSeconds { get; set; } = 30;
     public int PollIntervalSeconds { get; set; } = 5;
     public int CommandTimeoutSeconds { get; set; } = 120;
+    public bool SupportsRds { get; set; } = true;
+    public bool SupportsAd { get; set; }
 
     [Required]
     public string DataDirectory { get; set; } = @"C:\ProgramData\SessionManagerAgent\data";

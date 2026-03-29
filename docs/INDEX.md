@@ -49,6 +49,9 @@ Guia local de operacao do Agent Windows MVP (API + servico Windows).
 15. `docs/codex-requisitos-iniciais.md`
 Prompt/requisitos originais preservados.
 
+16. `docs/TAREFAS-AD-RDS.md`
+Checklist de execucao por fases para evolucao de RDS + Active Directory.
+
 ## Leitura recomendada para iniciar melhorias
 
 1. `docs/codex.md`

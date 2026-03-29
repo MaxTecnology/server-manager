@@ -28,6 +28,7 @@ builder.Services
     .Validate(static options => options.HeartbeatIntervalSeconds >= 5, "Agent:HeartbeatIntervalSeconds deve ser >= 5.")
     .Validate(static options => options.PollIntervalSeconds >= 1, "Agent:PollIntervalSeconds deve ser >= 1.")
     .Validate(static options => options.CommandTimeoutSeconds >= 5, "Agent:CommandTimeoutSeconds deve ser >= 5.")
+    .Validate(static options => options.SupportsRds || options.SupportsAd, "Agent: habilite ao menos uma capacidade (SupportsRds ou SupportsAd).")
     .ValidateOnStart();
 
 builder.Services.AddHttpClient<AgentApiClient>((serviceProvider, client) =>
@@ -41,6 +42,7 @@ builder.Services.AddHttpClient<AgentApiClient>((serviceProvider, client) =>
 
 builder.Services.AddSingleton<CommandExecutionService>();
 builder.Services.AddSingleton<PendingCommandResultStore>();
+builder.Services.AddSingleton<SecureCommandCodec>();
 builder.Services.AddHostedService<AgentWorker>();
 
 await builder.Build().RunAsync();

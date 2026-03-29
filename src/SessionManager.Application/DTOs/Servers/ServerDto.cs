@@ -6,6 +6,8 @@ public sealed record ServerDto(
     string Hostname,
     bool IsDefault,
     bool IsActive,
+    bool SupportsRds,
+    bool SupportsAd,
     string? AgentId,
     string? AgentVersion,
     DateTime? AgentLastHeartbeatUtc,

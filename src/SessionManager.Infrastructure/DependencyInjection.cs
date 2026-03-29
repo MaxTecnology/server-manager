@@ -58,6 +58,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IAgentCommandProtector, AgentCommandProtector>();
         services.AddSingleton<IClock, SystemClock>();
 
         services.AddScoped<IWindowsCommandExecutor, WindowsCommandExecutor>();

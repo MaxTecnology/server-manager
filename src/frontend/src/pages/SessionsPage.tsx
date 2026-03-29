@@ -25,9 +25,23 @@ export function SessionsPage() {
   async function loadServers() {
     try {
       const data = await apiRequest<ServerItem[]>("/api/servers", { token: auth.token });
-      setServers(data);
-      const defaultServer = data.find((item) => item.isDefault);
-      setSelectedServer(defaultServer?.hostname ?? data[0]?.hostname ?? "");
+      const rdsServers = data.filter((item) => item.supportsRds);
+      setServers(rdsServers);
+      setSelectedServer((current) => {
+        if (!rdsServers.length) {
+          return "";
+        }
+
+        if (current && rdsServers.some((item) => item.hostname === current)) {
+          return current;
+        }
+
+        const defaultServer = rdsServers.find((item) => item.isDefault) ?? rdsServers[0];
+        return defaultServer?.hostname ?? "";
+      });
+      if (!rdsServers.length) {
+        setSessions([]);
+      }
     } catch (error) {
       pushToast("error", error instanceof Error ? error.message : "Falha ao carregar servidores.");
     }
@@ -35,6 +49,7 @@ export function SessionsPage() {
 
   async function loadSessions(serverName = selectedServer) {
     if (!serverName) {
+      setSessions([]);
       return;
     }
 
@@ -172,7 +187,9 @@ export function SessionsPage() {
           </button>
         </div>
 
-        {loading ? (
+        {!servers.length ? (
+          <p>Nenhum servidor com capacidade RDS habilitada.</p>
+        ) : loading ? (
           <p>Atualizando sessões...</p>
         ) : (
           <div className="table-wrap">

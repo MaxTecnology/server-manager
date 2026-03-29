@@ -279,6 +279,8 @@ Permissao: `Administrator` ou `Operator`
 
 Retorna lista cadastrada no banco com status operacional do agent.
 
+Campos `supportsRds` e `supportsAd` sao usados para habilitar/desabilitar operacoes por servidor no frontend e backend.
+
 Response 200:
 
 ```json
@@ -289,6 +291,8 @@ Response 200:
     "hostname": "SRV-RDS-G2A",
     "isDefault": true,
     "isActive": true,
+    "supportsRds": true,
+    "supportsAd": false,
     "agentId": "SRV-RDS-G2A-agent",
     "agentVersion": "0.1.0",
     "agentLastHeartbeatUtc": "2026-03-29T20:10:00Z",
@@ -317,7 +321,9 @@ Request:
   "serverName": "WSL-RDS",
   "hostname": "WSL-RDS",
   "agentId": "agent-windows-01",
-  "agentVersion": "0.1.0"
+  "agentVersion": "0.1.0",
+  "supportsRds": true,
+  "supportsAd": false
 }
 ```
 
@@ -344,6 +350,8 @@ Request:
   "hostname": "WSL-RDS",
   "agentId": "agent-windows-01",
   "agentVersion": "0.1.0",
+  "supportsRds": true,
+  "supportsAd": false,
   "capturedAtUtc": "2026-03-29T19:40:45Z",
   "sessionsOutput": "USERNAME ... (saida do query user)"
 }
@@ -449,3 +457,55 @@ Response 200:
 Permissao: `Administrator`
 
 Retorna estado e resultado atual do comando.
+
+## Active Directory (MVP inicial)
+
+Pré-requisito:
+
+- o Agent do servidor alvo precisa ter módulo `ActiveDirectory` disponível (RSAT/Domain Services tools)
+
+Fluxo:
+
+1. API enfileira comando protegido (criptografado em repouso no banco)
+2. Agent decripta localmente e executa PowerShell AD
+3. status/resultado fica em `AgentCommands`
+4. API valida que o servidor alvo possui `supportsAd = true`
+
+## POST `/ad/servers/{serverId}/users`
+
+Permissao: `Administrator`
+
+Request:
+
+```json
+{
+  "username": "jose.silva",
+  "displayName": "Jose Silva",
+  "password": "SenhaForte@123",
+  "userPrincipalName": "jose.silva@empresa.local",
+  "organizationalUnitPath": "OU=Usuarios,DC=empresa,DC=local",
+  "changePasswordAtLogon": true
+}
+```
+
+Response 200:
+
+- mesmo contrato de `AgentCommandDto` (id do comando para acompanhamento)
+
+## POST `/ad/servers/{serverId}/users/{username}/reset-password`
+
+Permissao: `Administrator`
+
+Request:
+
+```json
+{
+  "password": "NovaSenha@123",
+  "changePasswordAtLogon": true,
+  "enableAccount": true
+}
+```
+
+Response 200:
+
+- mesmo contrato de `AgentCommandDto`

@@ -52,6 +52,12 @@ public sealed class SessionService : ISessionService
     public async Task<Result<IReadOnlyList<SessionInfoDto>>> GetSessionsAsync(string? serverName, CancellationToken cancellationToken = default)
     {
         var resolvedServer = await ResolveServerNameAsync(serverName, cancellationToken);
+        var capabilityCheck = await EnsureServerSupportsRdsIfRegisteredAsync(resolvedServer, cancellationToken);
+        if (!capabilityCheck.IsSuccess)
+        {
+            return Result<IReadOnlyList<SessionInfoDto>>.Failure(capabilityCheck.Error ?? "Operação não permitida para este servidor.");
+        }
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var directResult = await _windowsSessionGateway.ListSessionsAsync(resolvedServer, cancellationToken);
@@ -79,6 +85,11 @@ public sealed class SessionService : ISessionService
         if (server is null)
         {
             return Result<IReadOnlyList<SessionInfoDto>>.Failure("Servidor não encontrado para consulta de sessões.");
+        }
+
+        if (!server.SupportsRds)
+        {
+            return Result<IReadOnlyList<SessionInfoDto>>.Failure("Servidor não possui capacidade RDS habilitada.");
         }
 
         if (!HasRecentHeartbeat(server))
@@ -119,6 +130,12 @@ public sealed class SessionService : ISessionService
         }
 
         var serverName = await ResolveServerNameAsync(request.ServerName, cancellationToken);
+        var capabilityCheck = await EnsureServerSupportsRdsIfRegisteredAsync(serverName, cancellationToken);
+        if (!capabilityCheck.IsSuccess)
+        {
+            return capabilityCheck;
+        }
+
         var execution = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? await _windowsSessionGateway.DisconnectAsync(serverName, request.SessionId, cancellationToken)
             : await ExecuteAgentActionAsync(serverName, $"rwinsta {request.SessionId}", actionContext.OperatorUsername, cancellationToken);
@@ -145,6 +162,12 @@ public sealed class SessionService : ISessionService
         }
 
         var serverName = await ResolveServerNameAsync(request.ServerName, cancellationToken);
+        var capabilityCheck = await EnsureServerSupportsRdsIfRegisteredAsync(serverName, cancellationToken);
+        if (!capabilityCheck.IsSuccess)
+        {
+            return capabilityCheck;
+        }
+
         var execution = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? await _windowsSessionGateway.LogoffAsync(serverName, request.SessionId, cancellationToken)
             : await ExecuteAgentActionAsync(serverName, $"logoff {request.SessionId}", actionContext.OperatorUsername, cancellationToken);
@@ -195,6 +218,12 @@ public sealed class SessionService : ISessionService
         }
 
         var serverName = await ResolveServerNameAsync(request.ServerName, cancellationToken);
+        var capabilityCheck = await EnsureServerSupportsRdsIfRegisteredAsync(serverName, cancellationToken);
+        if (!capabilityCheck.IsSuccess)
+        {
+            return capabilityCheck;
+        }
+
         var execution = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? await _windowsSessionGateway.KillProcessAsync(serverName, request.SessionId, normalizedProcess, cancellationToken)
             : await ExecuteAgentActionAsync(
@@ -244,6 +273,17 @@ public sealed class SessionService : ISessionService
         return candidate.ToLowerInvariant();
     }
 
+    private async Task<Result> EnsureServerSupportsRdsIfRegisteredAsync(string serverName, CancellationToken cancellationToken)
+    {
+        var server = await _serverRepository.GetByHostnameAsync(serverName, cancellationToken);
+        if (server is not null && !server.SupportsRds)
+        {
+            return Result.Failure("Servidor não possui capacidade RDS habilitada.");
+        }
+
+        return Result.Success();
+    }
+
     private async Task<Result> ExecuteAgentActionAsync(
         string serverName,
         string commandText,
@@ -276,6 +316,11 @@ public sealed class SessionService : ISessionService
         if (!server.IsActive)
         {
             return Result<AgentCommand>.Failure("Servidor inativo.");
+        }
+
+        if (!server.SupportsRds)
+        {
+            return Result<AgentCommand>.Failure("Servidor não possui capacidade RDS habilitada.");
         }
 
         if (!HasRecentHeartbeat(server))

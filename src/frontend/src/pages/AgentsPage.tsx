@@ -99,6 +99,34 @@ export function AgentsPage() {
     });
   }, [search, servers]);
 
+  function renderCapabilities(server: ServerItem) {
+    const tags: string[] = [];
+    if (server.supportsRds) {
+      tags.push("RDS");
+    }
+
+    if (server.supportsAd) {
+      tags.push("AD");
+    }
+
+    if (!tags.length) {
+      tags.push("Nenhuma");
+    }
+
+    return (
+      <div className="capability-list">
+        {tags.map((tag) => (
+          <span
+            key={`${server.id}-${tag}`}
+            className={tag === "Nenhuma" ? "capability-badge capability-none" : "capability-badge"}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <section>
       <header className="page-header">
@@ -130,6 +158,7 @@ export function AgentsPage() {
                 <tr>
                   <th>Servidor</th>
                   <th>Hostname</th>
+                  <th>Capacidades</th>
                   <th>AgentId</th>
                   <th>Status</th>
                   <th>Último heartbeat</th>
@@ -155,6 +184,7 @@ export function AgentsPage() {
                     <tr key={server.id}>
                       <td>{server.name}</td>
                       <td>{server.hostname}</td>
+                      <td>{renderCapabilities(server)}</td>
                       <td>{server.agentId ?? "-"}</td>
                       <td>
                         <span className={statusClass}>{statusText}</span>
@@ -175,7 +205,7 @@ export function AgentsPage() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7}>Nenhum servidor encontrado.</td>
+                    <td colSpan={8}>Nenhum servidor encontrado.</td>
                   </tr>
                 )}
               </tbody>
