@@ -59,6 +59,26 @@ public sealed class AgentController : ApiControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("ad-ou-snapshot")]
+    public async Task<IActionResult> AdOuSnapshot([FromBody] AgentAdOuSnapshotRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!IsAgentAuthorized())
+        {
+            return Unauthorized(new { message = "Agent não autorizado." });
+        }
+
+        var result = await _agentService.RegisterAdOuSnapshotAsync(
+            request,
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao registrar snapshot de OUs AD." });
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpPost("next-command")]
     public async Task<IActionResult> NextCommand([FromBody] AgentPollRequestDto request, CancellationToken cancellationToken)
     {

@@ -16,6 +16,8 @@ param(
     [int]$HeartbeatIntervalSeconds = 30,
     [int]$PollIntervalSeconds = 5,
     [int]$CommandTimeoutSeconds = 120,
+    [int]$AdOuSnapshotIntervalSeconds = 300,
+    [int]$MaxAdOuSnapshotOutputLength = 500000,
     [bool]$SupportsRds = $true,
     [bool]$SupportsAd = $false
 )
@@ -86,10 +88,12 @@ $config = @{
         HeartbeatIntervalSeconds = $HeartbeatIntervalSeconds
         PollIntervalSeconds = $PollIntervalSeconds
         CommandTimeoutSeconds = $CommandTimeoutSeconds
+        AdOuSnapshotIntervalSeconds = $AdOuSnapshotIntervalSeconds
         SupportsRds = $SupportsRds
         SupportsAd = $SupportsAd
         DataDirectory = $dataDirectory
         MaxResultOutputLength = 4000
+        MaxAdOuSnapshotOutputLength = $MaxAdOuSnapshotOutputLength
     }
     Logging = @{
         LogLevel = @{

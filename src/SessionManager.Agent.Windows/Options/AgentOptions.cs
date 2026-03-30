@@ -19,6 +19,7 @@ public sealed class AgentOptions
     public int HeartbeatIntervalSeconds { get; set; } = 30;
     public int PollIntervalSeconds { get; set; } = 5;
     public int CommandTimeoutSeconds { get; set; } = 120;
+    public int AdOuSnapshotIntervalSeconds { get; set; } = 300;
     public bool SupportsRds { get; set; } = true;
     public bool SupportsAd { get; set; }
 
@@ -26,4 +27,5 @@ public sealed class AgentOptions
     public string DataDirectory { get; set; } = @"C:\ProgramData\SessionManagerAgent\data";
 
     public int MaxResultOutputLength { get; set; } = 4000;
+    public int MaxAdOuSnapshotOutputLength { get; set; } = 500000;
 }

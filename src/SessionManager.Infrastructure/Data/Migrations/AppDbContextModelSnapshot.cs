@@ -164,6 +164,11 @@ namespace SessionManager.Infrastructure.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("AgentAdOuSnapshotOutput")
+                        .HasMaxLength(500000);
+
+                    b.Property<DateTime?>("AgentAdOuSnapshotUtc");
+
                     b.Property<string>("AgentId")
                         .HasMaxLength(120);
 

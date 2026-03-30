@@ -117,3 +117,10 @@ export type ResetAdUserPasswordRequest = {
   changePasswordAtLogon: boolean;
   enableAccount: boolean;
 };
+
+export type AdOrganizationalUnit = {
+  name: string;
+  distinguishedName: string;
+  canonicalName: string;
+  depth: number;
+};

@@ -69,6 +69,15 @@ curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/session
   -d '{"serverName":"WSL-RDS","hostname":"WSL-RDS","agentId":"agent-windows-01","agentVersion":"0.1.0","supportsRds":true,"supportsAd":false,"capturedAtUtc":"2026-03-29T19:40:45Z","sessionsOutput":" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME\n>admin                 rdp-tcp#1          3   Active      none   3/29/2026 10:00 AM"}'
 ```
 
+### 4.2-b Enviar snapshot de OUs AD (quando `SupportsAd=true`)
+
+```bash
+curl -X POST http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/agent/ad-ou-snapshot \
+  -H "X-Agent-Key: DEV_ONLY_AGENT_KEY_CHANGE_ME" \
+  -H "Content-Type: application/json" \
+  -d '{"serverName":"WSL-AD","hostname":"WSL-AD","agentId":"agent-windows-01","agentVersion":"0.1.0","supportsRds":false,"supportsAd":true,"capturedAtUtc":"2026-03-30T00:30:00Z","organizationalUnitsOutput":"[{\"name\":\"Usuarios\",\"distinguishedName\":\"OU=Usuarios,DC=empresa,DC=local\",\"canonicalName\":\"empresa.local/Usuarios\"}]"}'
+```
+
 ### 4.3 Login admin
 
 ```bash
@@ -147,6 +156,7 @@ No Windows Server (PowerShell como Administrador):
   -ApiKey "DEV_ONLY_AGENT_KEY_CHANGE_ME" `
   -ServerName "SRV-RDS-01" `
   -AgentId "agent-srv-rds-01" `
+  -AdOuSnapshotIntervalSeconds 300 `
   -SupportsRds $true `
   -SupportsAd $false
 ```
@@ -156,6 +166,7 @@ Observacoes:
 - se API estiver no mesmo host do agent, pode usar `http://localhost:5000`
 - para Dockploy/producao, usar URL final de API (`https://api.seu-dominio.com`)
 - `ApiKey` deve ser igual a `Agent:ApiKey` da API
+- `AdOuSnapshotIntervalSeconds` controla a frequencia de envio das OUs AD (quando `SupportsAd=true`)
 - perfis recomendados:
   - servidor RDS: `-SupportsRds $true -SupportsAd $false`
   - servidor AD: `-SupportsRds $false -SupportsAd $true`
@@ -199,3 +210,43 @@ Remover tambem dados pendentes:
 ```powershell
 .\uninstall-agent.ps1 -ServiceName "SessionManagerAgent" -RemoveData
 ```
+
+## 6) Troubleshooting rapido
+
+### Erro: `'Import-Module' is not recognized as an internal or external command`
+
+Causa comum:
+
+- agent desatualizado executando comando AD em `cmd.exe` em vez de `powershell.exe`
+
+Correcao:
+
+```powershell
+# pasta extraida do pacote mais recente
+Stop-Service SessionManagerAgent
+
+.\package\update-agent.ps1 `
+  -PublishPath ".\agent-win-x64" `
+  -InstallPath "C:\Program Files\SessionManagerAgent" `
+  -ServiceName "SessionManagerAgent"
+
+Restart-Service SessionManagerAgent
+Get-Service SessionManagerAgent
+```
+
+Validacao:
+
+- reenfileirar o comando AD pelo frontend (`/active-directory`)
+- confirmar `Succeeded` no ultimo comando AD
+
+### Erro ao carregar OUs no frontend AD
+
+Mensagem comum:
+
+- `Snapshot de OUs desatualizado. Verifique o agent AD.`
+
+Checklist:
+
+1. confirmar que o agent AD foi instalado com `-SupportsAd $true`
+2. verificar heartbeat recente do agente
+3. revisar log do `SessionManagerAgent` no Event Viewer para falha no comando `Get-ADOrganizationalUnit`

@@ -78,7 +78,7 @@ pwsh -File .\deploy\agent\windows\publish-agent.ps1 -Configuration Release -Runt
 2. instalar no Windows Server (PowerShell admin):
 
 ```powershell
-.\install-agent.ps1 -ApiBaseUrl "https://api.seu-dominio.com" -ApiKey "<AgentApiKey>" -ServerName "SRV-RDS-01" -AgentId "agent-srv-rds-01" -SupportsRds $true -SupportsAd $false
+.\install-agent.ps1 -ApiBaseUrl "https://api.seu-dominio.com" -ApiKey "<AgentApiKey>" -ServerName "SRV-RDS-01" -AgentId "agent-srv-rds-01" -AdOuSnapshotIntervalSeconds 300 -SupportsRds $true -SupportsAd $false
 ```
 
 3. validar servico:
@@ -88,15 +88,16 @@ Get-Service SessionManagerAgent
 sc.exe query SessionManagerAgent
 ```
 
-4. validar que heartbeat + snapshot atualizam servidor e aparecem no frontend.
+4. validar que heartbeat + snapshots (sessao e OU AD quando habilitado) atualizam servidor e aparecem no frontend.
 
 ## 5) AD MVP inicial (opcional)
 
 1. garantir que o servidor alvo do agent tenha módulo `ActiveDirectory` disponível
 2. garantir que o agent foi instalado com `-SupportsAd $true`
-3. enfileirar criação de usuário em `POST /api/ad/servers/{serverId}/users`
-4. enfileirar reset de senha em `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
-5. acompanhar execução em `GET /api/agent-commands/{commandId}`
+3. validar retorno de OUs em `GET /api/ad/servers/{serverId}/organizational-units`
+4. enfileirar criação de usuário em `POST /api/ad/servers/{serverId}/users`
+5. enfileirar reset de senha em `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
+6. acompanhar execução em `GET /api/agent-commands/{commandId}`
 
 Referencia operacional detalhada:
 

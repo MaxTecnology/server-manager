@@ -10,6 +10,9 @@ namespace SessionManager.Agent.Windows;
 
 public sealed class AgentWorker : BackgroundService
 {
+    private const string AdOuSnapshotCommand =
+        "Import-Module ActiveDirectory;$ous=Get-ADOrganizationalUnit -Filter * -Properties CanonicalName | Select-Object Name,DistinguishedName,CanonicalName | Sort-Object CanonicalName;ConvertTo-Json -InputObject @($ous) -Compress";
+
     private readonly IOptions<AgentOptions> _options;
     private readonly AgentApiClient _apiClient;
     private readonly CommandExecutionService _commandExecutionService;
@@ -40,7 +43,9 @@ public sealed class AgentWorker : BackgroundService
 
         var pollInterval = TimeSpan.FromSeconds(Math.Max(1, options.PollIntervalSeconds));
         var heartbeatInterval = TimeSpan.FromSeconds(Math.Max(5, options.HeartbeatIntervalSeconds));
+        var adOuSnapshotInterval = TimeSpan.FromSeconds(Math.Max(30, options.AdOuSnapshotIntervalSeconds));
         var nextHeartbeatAt = DateTimeOffset.MinValue;
+        var nextAdOuSnapshotAt = DateTimeOffset.MinValue;
 
         _logger.LogInformation(
             "Agent iniciado. AgentId={AgentId} Hostname={Hostname} Server={ServerName} SupportsRds={SupportsRds} SupportsAd={SupportsAd}",
@@ -63,7 +68,14 @@ public sealed class AgentWorker : BackgroundService
                     {
                         await SendSessionSnapshotAsync(identity, options, stoppingToken);
                     }
+
                     nextHeartbeatAt = DateTimeOffset.UtcNow.Add(heartbeatInterval);
+                }
+
+                if (identity.SupportsAd && DateTimeOffset.UtcNow >= nextAdOuSnapshotAt)
+                {
+                    await SendAdOuSnapshotAsync(identity, options, stoppingToken);
+                    nextAdOuSnapshotAt = DateTimeOffset.UtcNow.Add(adOuSnapshotInterval);
                 }
 
                 await PollAndExecuteAsync(identity, options, stoppingToken);
@@ -152,6 +164,61 @@ public sealed class AgentWorker : BackgroundService
         }
 
         _logger.LogWarning("Falha ao enviar snapshot de sessões: {Error}", snapshot.Error);
+    }
+
+    private async Task SendAdOuSnapshotAsync(AgentIdentity identity, AgentOptions options, CancellationToken cancellationToken)
+    {
+        var execution = await _commandExecutionService.ExecuteAsync(
+            AdOuSnapshotCommand,
+            options.CommandTimeoutSeconds,
+            cancellationToken);
+
+        var output = execution.StandardOutput;
+        if (string.IsNullOrWhiteSpace(output) && !string.IsNullOrWhiteSpace(execution.StandardError))
+        {
+            output = execution.StandardError;
+        }
+
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            _logger.LogWarning("Snapshot de OUs AD vazio para o servidor {ServerName}.", identity.ServerName);
+            return;
+        }
+
+        if (output.Length > options.MaxAdOuSnapshotOutputLength)
+        {
+            _logger.LogWarning(
+                "Snapshot de OUs AD excedeu o limite configurado ({Length}/{MaxLength}) e nao foi enviado.",
+                output.Length,
+                options.MaxAdOuSnapshotOutputLength);
+            return;
+        }
+
+        var snapshot = await _apiClient.SendAdOuSnapshotAsync(new AgentAdOuSnapshotRequestDto
+        {
+            ServerName = identity.ServerName,
+            Hostname = identity.Hostname,
+            AgentId = identity.AgentId,
+            AgentVersion = identity.AgentVersion,
+            SupportsRds = identity.SupportsRds,
+            SupportsAd = identity.SupportsAd,
+            OrganizationalUnitsOutput = output,
+            CapturedAtUtc = DateTime.UtcNow
+        }, cancellationToken);
+
+        if (snapshot.Success)
+        {
+            _logger.LogDebug("Snapshot de OUs AD enviado com sucesso.");
+            return;
+        }
+
+        if (snapshot.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            _logger.LogError("Snapshot de OUs AD rejeitado (401). Verifique Agent:ApiKey.");
+            return;
+        }
+
+        _logger.LogWarning("Falha ao enviar snapshot de OUs AD: {Error}", snapshot.Error);
     }
 
     private async Task PollAndExecuteAsync(AgentIdentity identity, AgentOptions options, CancellationToken cancellationToken)

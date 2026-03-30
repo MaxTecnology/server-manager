@@ -369,6 +369,37 @@ Response 200:
 }
 ```
 
+## POST `/agent/ad-ou-snapshot`
+
+Permissao: publica (com `X-Agent-Key`)
+
+Request:
+
+```json
+{
+  "serverName": "SRV-AD-01",
+  "hostname": "SRV-AD-01",
+  "agentId": "srv-ad-01-agent",
+  "agentVersion": "0.1.0",
+  "supportsRds": false,
+  "supportsAd": true,
+  "capturedAtUtc": "2026-03-30T00:30:00Z",
+  "organizationalUnitsOutput": "[{\"name\":\"Usuarios\",\"distinguishedName\":\"OU=Usuarios,DC=empresa,DC=local\",\"canonicalName\":\"empresa.local/Usuarios\"}]"
+}
+```
+
+Response 200:
+
+```json
+{
+  "serverId": "guid",
+  "serverName": "SRV-AD-01",
+  "hostname": "SRV-AD-01",
+  "receivedAtUtc": "2026-03-30T00:30:02Z",
+  "capturedAtUtc": "2026-03-30T00:30:00Z"
+}
+```
+
 ## POST `/agent/next-command`
 
 Permissao: publica (com `X-Agent-Key`)
@@ -470,6 +501,31 @@ Fluxo:
 2. Agent decripta localmente e executa PowerShell AD
 3. status/resultado fica em `AgentCommands`
 4. API valida que o servidor alvo possui `supportsAd = true`
+
+## GET `/ad/servers/{serverId}/organizational-units`
+
+Permissao: `Administrator`
+
+Retorna OUs do snapshot mais recente enviado pelo agent AD.
+
+Response 200:
+
+```json
+[
+  {
+    "name": "Usuarios",
+    "distinguishedName": "OU=Usuarios,DC=empresa,DC=local",
+    "canonicalName": "empresa.local/Usuarios",
+    "depth": 0
+  },
+  {
+    "name": "RMA",
+    "distinguishedName": "OU=RMA,OU=Usuarios,DC=empresa,DC=local",
+    "canonicalName": "empresa.local/Usuarios/RMA",
+    "depth": 1
+  }
+]
+```
 
 ## POST `/ad/servers/{serverId}/users`
 

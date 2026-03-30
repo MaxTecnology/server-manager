@@ -21,17 +21,7 @@ public sealed class CommandExecutionService
                 TimedOut: false);
         }
 
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "cmd.exe",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        startInfo.ArgumentList.Add("/c");
-        startInfo.ArgumentList.Add(commandText);
+        var startInfo = BuildStartInfo(commandText);
 
         using var process = new Process { StartInfo = startInfo };
 
@@ -95,5 +85,48 @@ public sealed class CommandExecutionService
             StandardOutput: output,
             StandardError: error,
             TimedOut: false);
+    }
+
+    private static ProcessStartInfo BuildStartInfo(string commandText)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        if (RequiresPowerShell(commandText))
+        {
+            startInfo.FileName = "powershell.exe";
+            startInfo.ArgumentList.Add("-NoLogo");
+            startInfo.ArgumentList.Add("-NoProfile");
+            startInfo.ArgumentList.Add("-NonInteractive");
+            startInfo.ArgumentList.Add("-ExecutionPolicy");
+            startInfo.ArgumentList.Add("Bypass");
+            startInfo.ArgumentList.Add("-Command");
+            startInfo.ArgumentList.Add(commandText);
+            return startInfo;
+        }
+
+        startInfo.FileName = "cmd.exe";
+        startInfo.ArgumentList.Add("/c");
+        startInfo.ArgumentList.Add(commandText);
+        return startInfo;
+    }
+
+    private static bool RequiresPowerShell(string commandText)
+    {
+        var normalized = commandText.TrimStart();
+        if (normalized.StartsWith("Import-Module", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return normalized.Contains("New-ADUser", StringComparison.OrdinalIgnoreCase)
+               || normalized.Contains("Set-ADAccountPassword", StringComparison.OrdinalIgnoreCase)
+               || normalized.Contains("Enable-ADAccount", StringComparison.OrdinalIgnoreCase)
+               || normalized.Contains("Set-ADUser", StringComparison.OrdinalIgnoreCase);
     }
 }

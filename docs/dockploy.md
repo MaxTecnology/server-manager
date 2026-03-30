@@ -98,11 +98,12 @@ Depois conecte no cliente SQL com:
 - instalar o agent no Windows Server usando `deploy/agent/windows/install-agent.ps1`
 - usar `-ApiBaseUrl` apontando para a URL publica da API (ex: `https://api.seu-dominio.com`)
 - usar no script a mesma chave configurada em `SESSIONMANAGER_AGENT_API_KEY`
+- opcional: ajustar `-AdOuSnapshotIntervalSeconds` no install (padrao: `300`)
 - definir perfil no install:
   - RDS: `-SupportsRds $true -SupportsAd $false`
   - AD: `-SupportsRds $false -SupportsAd $true`
   - misto: `-SupportsRds $true -SupportsAd $true`
-- validar no painel que heartbeat e snapshot de sessoes chegam (`/api/agent/heartbeat` e `/api/agent/session-snapshot`)
+- validar no painel/API que heartbeat e snapshots chegam (`/api/agent/heartbeat`, `/api/agent/session-snapshot`, `/api/agent/ad-ou-snapshot`)
 
 ## 7) Observacao para desenvolvimento local (WSL)
 

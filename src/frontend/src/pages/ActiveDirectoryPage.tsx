@@ -2,7 +2,13 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import type { AgentCommand, CreateAdUserRequest, ResetAdUserPasswordRequest, ServerItem } from "../types";
+import type {
+  AdOrganizationalUnit,
+  AgentCommand,
+  CreateAdUserRequest,
+  ResetAdUserPasswordRequest,
+  ServerItem
+} from "../types";
 
 function formatDateTime(value: string | null) {
   if (!value) {
@@ -34,6 +40,12 @@ function getStatusClass(status: string) {
   return "status-pill status-unknown";
 }
 
+function formatOuOption(item: AdOrganizationalUnit) {
+  const depth = Math.max(0, item.depth);
+  const prefix = depth === 0 ? "" : `${"--".repeat(Math.min(depth, 8))} `;
+  return `${prefix}${item.name} (${item.canonicalName})`;
+}
+
 export function ActiveDirectoryPage() {
   const auth = useAuth();
   const { pushToast } = useToast();
@@ -42,8 +54,11 @@ export function ActiveDirectoryPage() {
   const [servers, setServers] = useState<ServerItem[]>([]);
   const [selectedServerId, setSelectedServerId] = useState<string>("");
   const [loadingServers, setLoadingServers] = useState(false);
+  const [loadingOus, setLoadingOus] = useState(false);
+  const [ouLoadError, setOuLoadError] = useState<string | null>(null);
   const [submittingCreate, setSubmittingCreate] = useState(false);
   const [submittingReset, setSubmittingReset] = useState(false);
+  const [organizationalUnits, setOrganizationalUnits] = useState<AdOrganizationalUnit[]>([]);
 
   const [createForm, setCreateForm] = useState<CreateAdUserRequest>({
     username: "",
@@ -74,6 +89,10 @@ export function ActiveDirectoryPage() {
       const data = await apiRequest<ServerItem[]>("/api/servers", { token: auth.token });
       const adServers = data.filter((item) => item.supportsAd);
       setServers(adServers);
+      setOuLoadError(null);
+      if (!adServers.length) {
+        setOrganizationalUnits([]);
+      }
       setSelectedServerId((current) => {
         if (!adServers.length) {
           return "";
@@ -93,6 +112,28 @@ export function ActiveDirectoryPage() {
     }
   }
 
+  async function loadOrganizationalUnits(serverId: string) {
+    if (!serverId) {
+      setOrganizationalUnits([]);
+      setOuLoadError(null);
+      return;
+    }
+
+    setLoadingOus(true);
+    setOuLoadError(null);
+    try {
+      const data = await apiRequest<AdOrganizationalUnit[]>(`/api/ad/servers/${serverId}/organizational-units`, {
+        token: auth.token
+      });
+      setOrganizationalUnits(data);
+    } catch (error) {
+      setOrganizationalUnits([]);
+      setOuLoadError(error instanceof Error ? error.message : "Falha ao carregar OUs do AD.");
+    } finally {
+      setLoadingOus(false);
+    }
+  }
+
   async function refreshCommand(commandId: string) {
     try {
       const command = await apiRequest<AgentCommand>(`/api/agent-commands/${commandId}`, {
@@ -108,6 +149,18 @@ export function ActiveDirectoryPage() {
     void loadServers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.token]);
+
+  useEffect(() => {
+    if (!selectedServerId) {
+      setOrganizationalUnits([]);
+      setOuLoadError(null);
+      return;
+    }
+
+    setCreateForm((current) => ({ ...current, organizationalUnitPath: "" }));
+    void loadOrganizationalUnits(selectedServerId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedServerId, auth.token]);
 
   useEffect(() => {
     if (!lastCommand) {
@@ -287,7 +340,37 @@ export function ActiveDirectoryPage() {
             />
           </label>
           <label>
-            OU path (opcional)
+            OU (selecionar da estrutura)
+            <div className="button-row">
+              <select
+                value={createForm.organizationalUnitPath ?? ""}
+                onChange={(event) =>
+                  setCreateForm((current) => ({ ...current, organizationalUnitPath: event.target.value }))
+                }
+              >
+                <option value="">Padrão do domínio (sem OU específica)</option>
+                {organizationalUnits.map((item) => (
+                  <option key={item.distinguishedName} value={item.distinguishedName}>
+                    {formatOuOption(item)}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => void loadOrganizationalUnits(selectedServerId)}
+                disabled={!selectedServerId || loadingOus}
+              >
+                {loadingOus ? "Atualizando OUs..." : "Atualizar OUs"}
+              </button>
+            </div>
+            {ouLoadError && <span className="field-help error-text">{ouLoadError}</span>}
+            {!ouLoadError && !loadingOus && organizationalUnits.length > 0 && (
+              <span className="field-help">OUs disponíveis: {organizationalUnits.length}</span>
+            )}
+          </label>
+          <label>
+            OU path manual (opcional)
             <input
               value={createForm.organizationalUnitPath ?? ""}
               onChange={(event) =>
@@ -295,6 +378,7 @@ export function ActiveDirectoryPage() {
               }
               placeholder="OU=Usuarios,DC=empresa,DC=local"
             />
+            <span className="field-help">Pode editar manualmente se precisar de um DN específico.</span>
           </label>
           <label>
             <input

@@ -227,6 +227,7 @@ Instalar no Windows Server (PowerShell admin):
   -ApiKey "<AgentApiKey>" `
   -ServerName "SRV-RDS-01" `
   -AgentId "agent-srv-rds-01" `
+  -AdOuSnapshotIntervalSeconds 300 `
   -SupportsRds $true `
   -SupportsAd $false
 ```
@@ -265,6 +266,7 @@ Pelo frontend (admin):
 
 - acesse `/active-directory`
 - selecione um servidor com capability AD
+- carregue as OUs pelo seletor (endpoint `GET /api/ad/servers/{serverId}/organizational-units`)
 - use formularios de criar usuario/reset de senha
 - acompanhe status pelo `CommandId`
 

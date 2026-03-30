@@ -52,7 +52,8 @@ Fluxo implementado:
 4. frontend consulta `/api/sessions` e `/api/dashboard/metrics` com base no snapshot mais recente
 5. opcionalmente, admin enfileira comando por servidor
 6. operacoes AD ficam em `/active-directory` (somente admin) quando `SupportsAd=true`
-7. execucao de comando (quando usada) fica auditada em `AuditLogs`
+7. agent AD envia snapshot de OUs e frontend usa esse snapshot para seletor de OU
+8. execucao de comando (quando usada) fica auditada em `AuditLogs`
 
 Operacao do agent (publish + servico Windows):
 

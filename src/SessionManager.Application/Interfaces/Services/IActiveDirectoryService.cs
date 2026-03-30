@@ -6,6 +6,10 @@ namespace SessionManager.Application.Interfaces.Services;
 
 public interface IActiveDirectoryService
 {
+    Task<Result<IReadOnlyList<AdOrganizationalUnitDto>>> GetOrganizationalUnitsAsync(
+        Guid serverId,
+        CancellationToken cancellationToken = default);
+
     Task<Result<AgentCommandDto>> CreateUserAsync(
         Guid serverId,
         CreateAdUserRequestDto request,

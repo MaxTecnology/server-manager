@@ -59,6 +59,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(x => x.AgentVersion).HasMaxLength(40);
             entity.Property(x => x.AgentLastIpAddress).HasMaxLength(80);
             entity.Property(x => x.AgentSessionSnapshotOutput).HasMaxLength(20000);
+            entity.Property(x => x.AgentAdOuSnapshotOutput).HasMaxLength(500000);
             entity.HasIndex(x => x.Name).IsUnique();
             entity.HasIndex(x => x.Hostname).IsUnique();
         });

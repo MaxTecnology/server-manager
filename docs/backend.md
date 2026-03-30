@@ -110,6 +110,8 @@ No MVP de Agent:
 No MVP inicial de AD:
 
 - operacoes de criar usuario/reset de senha sao enfileiradas via agent
+- agent envia snapshot periodico de OUs AD para a API
+- endpoint admin de leitura de OUs usa o snapshot recebido do agent
 - payload de comando AD fica protegido (criptografado) no banco
 - API bloqueia operacao AD quando servidor nao tem `SupportsAd`
 

@@ -17,6 +17,18 @@ public sealed class ActiveDirectoryController : ApiControllerBase
         _activeDirectoryService = activeDirectoryService;
     }
 
+    [HttpGet("servers/{serverId:guid}/organizational-units")]
+    public async Task<IActionResult> GetOrganizationalUnits(Guid serverId, CancellationToken cancellationToken)
+    {
+        var result = await _activeDirectoryService.GetOrganizationalUnitsAsync(serverId, cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao listar OUs do AD." });
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpPost("servers/{serverId:guid}/users")]
     public async Task<IActionResult> CreateUser(
         Guid serverId,

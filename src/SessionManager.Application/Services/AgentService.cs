@@ -11,6 +11,9 @@ namespace SessionManager.Application.Services;
 
 public sealed class AgentService : IAgentService
 {
+    private const int MaxSessionSnapshotLength = 20000;
+    private const int MaxAdOuSnapshotLength = 500000;
+
     private readonly IServerRepository _serverRepository;
     private readonly IAgentCommandRepository _agentCommandRepository;
     private readonly IAuditLogRepository _auditLogRepository;
@@ -82,12 +85,53 @@ public sealed class AgentService : IAgentService
         server.AgentLastHeartbeatUtc = now;
         server.AgentLastIpAddress = Truncate(clientIpAddress, 80);
         ApplyCapabilities(server, request.SupportsRds, request.SupportsAd);
-        server.AgentSessionSnapshotOutput = Truncate(NormalizeValue(request.SessionsOutput), 20000);
+        server.AgentSessionSnapshotOutput = Truncate(NormalizeValue(request.SessionsOutput), MaxSessionSnapshotLength);
         server.AgentSessionSnapshotUtc = capturedAtUtc;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<AgentSessionSnapshotResponseDto>.Success(new AgentSessionSnapshotResponseDto(
+            server.Id,
+            server.Name,
+            server.Hostname,
+            now,
+            capturedAtUtc));
+    }
+
+    public async Task<Result<AgentAdOuSnapshotResponseDto>> RegisterAdOuSnapshotAsync(
+        AgentAdOuSnapshotRequestDto request,
+        string? clientIpAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedHostname = NormalizeValue(request.Hostname ?? request.ServerName);
+        if (normalizedHostname is null)
+        {
+            return Result<AgentAdOuSnapshotResponseDto>.Failure("Hostname do servidor é obrigatório.");
+        }
+
+        var serverName = NormalizeValue(request.ServerName) ?? normalizedHostname;
+        var now = _clock.UtcNow;
+        var capturedAtUtc = NormalizeCapturedAt(request.CapturedAtUtc, now);
+        var normalizedOutput = NormalizeValue(request.OrganizationalUnitsOutput);
+
+        if (normalizedOutput is not null && normalizedOutput.Length > MaxAdOuSnapshotLength)
+        {
+            return Result<AgentAdOuSnapshotResponseDto>.Failure(
+                $"Snapshot de OUs excede limite de {MaxAdOuSnapshotLength} caracteres.");
+        }
+
+        var server = await ResolveOrCreateServerAsync(normalizedHostname, serverName, now, cancellationToken);
+        server.AgentId = Truncate(NormalizeValue(request.AgentId), 120);
+        server.AgentVersion = Truncate(NormalizeValue(request.AgentVersion), 40);
+        server.AgentLastHeartbeatUtc = now;
+        server.AgentLastIpAddress = Truncate(clientIpAddress, 80);
+        ApplyCapabilities(server, request.SupportsRds, request.SupportsAd);
+        server.AgentAdOuSnapshotOutput = normalizedOutput;
+        server.AgentAdOuSnapshotUtc = capturedAtUtc;
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result<AgentAdOuSnapshotResponseDto>.Success(new AgentAdOuSnapshotResponseDto(
             server.Id,
             server.Name,
             server.Hostname,

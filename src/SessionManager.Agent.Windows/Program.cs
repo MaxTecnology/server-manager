@@ -28,6 +28,8 @@ builder.Services
     .Validate(static options => options.HeartbeatIntervalSeconds >= 5, "Agent:HeartbeatIntervalSeconds deve ser >= 5.")
     .Validate(static options => options.PollIntervalSeconds >= 1, "Agent:PollIntervalSeconds deve ser >= 1.")
     .Validate(static options => options.CommandTimeoutSeconds >= 5, "Agent:CommandTimeoutSeconds deve ser >= 5.")
+    .Validate(static options => options.AdOuSnapshotIntervalSeconds >= 30, "Agent:AdOuSnapshotIntervalSeconds deve ser >= 30.")
+    .Validate(static options => options.MaxAdOuSnapshotOutputLength >= 1000, "Agent:MaxAdOuSnapshotOutputLength deve ser >= 1000.")
     .Validate(static options => options.SupportsRds || options.SupportsAd, "Agent: habilite ao menos uma capacidade (SupportsRds ou SupportsAd).")
     .ValidateOnStart();
 
