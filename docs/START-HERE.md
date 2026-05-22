@@ -53,7 +53,8 @@ Fluxo implementado:
 5. opcionalmente, admin enfileira comando por servidor
 6. operacoes AD ficam em `/active-directory` (somente admin) quando `SupportsAd=true`
 7. agent AD envia snapshot de OUs e frontend usa esse snapshot para seletor de OU
-8. execucao de comando (quando usada) fica auditada em `AuditLogs`
+8. frontend AD permite busca de usuário + ações de bloquear/desbloquear/resetar
+9. execucao de comando (quando usada) fica auditada em `AuditLogs`
 
 Operacao do agent (publish + servico Windows):
 

@@ -126,6 +126,21 @@ curl "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/audit?search=AGENT&p
   -H "Authorization: Bearer {accessToken}"
 ```
 
+### 4.7 Validar busca/bloqueio/desbloqueio AD (admin)
+
+```bash
+curl -X POST "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/ad/servers/{serverId}/users/search" \
+  -H "Authorization: Bearer {accessToken}" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"maria","limit":20}'
+
+curl -X POST "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/ad/servers/{serverId}/users/{username}/block" \
+  -H "Authorization: Bearer {accessToken}"
+
+curl -X POST "http://localhost:${SESSIONMANAGER_API_PORT:-5000}/api/ad/servers/{serverId}/users/{username}/unblock" \
+  -H "Authorization: Bearer {accessToken}"
+```
+
 ## 5) Agent Windows como servico
 
 Scripts em `deploy/agent/windows/`:

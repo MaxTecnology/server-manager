@@ -124,3 +124,15 @@ export type AdOrganizationalUnit = {
   canonicalName: string;
   depth: number;
 };
+
+export type SearchAdUsersRequest = {
+  query: string;
+  limit?: number;
+};
+
+export type AdUserSearchItem = {
+  username: string;
+  displayName: string;
+  enabled: boolean;
+  lockedOut: boolean;
+};

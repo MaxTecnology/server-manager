@@ -95,9 +95,12 @@ sc.exe query SessionManagerAgent
 1. garantir que o servidor alvo do agent tenha módulo `ActiveDirectory` disponível
 2. garantir que o agent foi instalado com `-SupportsAd $true`
 3. validar retorno de OUs em `GET /api/ad/servers/{serverId}/organizational-units`
-4. enfileirar criação de usuário em `POST /api/ad/servers/{serverId}/users`
-5. enfileirar reset de senha em `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
-6. acompanhar execução em `GET /api/agent-commands/{commandId}`
+4. validar busca de usuários em `POST /api/ad/servers/{serverId}/users/search`
+5. enfileirar bloqueio em `POST /api/ad/servers/{serverId}/users/{username}/block`
+6. enfileirar desbloqueio em `POST /api/ad/servers/{serverId}/users/{username}/unblock`
+7. enfileirar criação de usuário em `POST /api/ad/servers/{serverId}/users`
+8. enfileirar reset de senha em `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
+9. acompanhar execução em `GET /api/agent-commands/{commandId}`
 
 Referencia operacional detalhada:
 

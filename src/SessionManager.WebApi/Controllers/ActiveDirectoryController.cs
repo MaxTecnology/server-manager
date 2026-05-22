@@ -29,6 +29,25 @@ public sealed class ActiveDirectoryController : ApiControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("servers/{serverId:guid}/users/search")]
+    public async Task<IActionResult> SearchUsers(
+        Guid serverId,
+        [FromBody] SearchAdUsersRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _activeDirectoryService.SearchUsersAsync(
+            serverId,
+            request,
+            BuildActionContext(),
+            cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao buscar usuários AD." });
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpPost("servers/{serverId:guid}/users")]
     public async Task<IActionResult> CreateUser(
         Guid serverId,
@@ -44,6 +63,46 @@ public sealed class ActiveDirectoryController : ApiControllerBase
         if (!result.IsSuccess || result.Value is null)
         {
             return BadRequest(new { message = result.Error ?? "Falha ao enfileirar criação de usuário no AD." });
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPost("servers/{serverId:guid}/users/{username}/block")]
+    public async Task<IActionResult> BlockUser(
+        Guid serverId,
+        string username,
+        CancellationToken cancellationToken)
+    {
+        var result = await _activeDirectoryService.BlockUserAsync(
+            serverId,
+            username,
+            BuildActionContext(),
+            cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao enfileirar bloqueio de usuário AD." });
+        }
+
+        return Ok(result.Value);
+    }
+
+    [HttpPost("servers/{serverId:guid}/users/{username}/unblock")]
+    public async Task<IActionResult> UnblockUser(
+        Guid serverId,
+        string username,
+        CancellationToken cancellationToken)
+    {
+        var result = await _activeDirectoryService.UnblockUserAsync(
+            serverId,
+            username,
+            BuildActionContext(),
+            cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return BadRequest(new { message = result.Error ?? "Falha ao enfileirar desbloqueio de usuário AD." });
         }
 
         return Ok(result.Value);

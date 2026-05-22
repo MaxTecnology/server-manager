@@ -267,6 +267,8 @@ Pelo frontend (admin):
 - acesse `/active-directory`
 - selecione um servidor com capability AD
 - carregue as OUs pelo seletor (endpoint `GET /api/ad/servers/{serverId}/organizational-units`)
+- busque usuários AD para reduzir erro de digitação (`POST /api/ad/servers/{serverId}/users/search`)
+- use as ações rápidas de bloquear/desbloquear por usuário
 - use formularios de criar usuario/reset de senha
 - acompanhe status pelo `CommandId`
 

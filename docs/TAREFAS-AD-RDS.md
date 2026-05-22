@@ -25,9 +25,10 @@ Organizar a evolucao do produto para operar servidores com perfis diferentes:
 ## Fase 2: Operacao AD no frontend (expansao)
 
 - [x] listar OUs AD por servidor (snapshot + seletor no frontend para criar usuario)
-- [ ] listar usuarios AD por servidor
-- [ ] buscar usuario AD por login/display name
-- [ ] acao de desbloquear conta AD
+- [x] listar usuarios AD por servidor (busca via agent)
+- [x] buscar usuario AD por login/display name
+- [x] acao de bloquear conta AD
+- [x] acao de desbloquear conta AD
 - [ ] acao de forcar expiracao de senha
 - [ ] feedback de validacao de senha por politica do dominio
 

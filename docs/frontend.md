@@ -75,8 +75,12 @@ Comportamento atual:
 ## Active Directory (admin)
 
 - consome `/api/servers` filtrando `supportsAd = true`
+- busca usuarios AD via `POST /api/ad/servers/{serverId}/users/search`
+- lista status de conta (ativo/bloqueado/travado) por usuário retornado
 - enfileira criacao de usuario via `POST /api/ad/servers/{serverId}/users`
 - enfileira reset de senha via `POST /api/ad/servers/{serverId}/users/{username}/reset-password`
+- enfileira bloqueio via `POST /api/ad/servers/{serverId}/users/{username}/block`
+- enfileira desbloqueio via `POST /api/ad/servers/{serverId}/users/{username}/unblock`
 - acompanha status via `GET /api/agent-commands/{commandId}` com polling
 
 ## Configuracoes (admin)

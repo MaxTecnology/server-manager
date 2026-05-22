@@ -502,6 +502,34 @@ Fluxo:
 3. status/resultado fica em `AgentCommands`
 4. API valida que o servidor alvo possui `supportsAd = true`
 
+## POST `/ad/servers/{serverId}/users/search`
+
+Permissao: `Administrator`
+
+Busca usuários AD por `sAMAccountName`, `Name` ou `DisplayName`.
+
+Request:
+
+```json
+{
+  "query": "maria",
+  "limit": 20
+}
+```
+
+Response 200:
+
+```json
+[
+  {
+    "username": "maria.silva",
+    "displayName": "Maria Silva",
+    "enabled": true,
+    "lockedOut": false
+  }
+]
+```
+
 ## GET `/ad/servers/{serverId}/organizational-units`
 
 Permissao: `Administrator`
@@ -561,6 +589,26 @@ Request:
   "enableAccount": true
 }
 ```
+
+Response 200:
+
+- mesmo contrato de `AgentCommandDto`
+
+## POST `/ad/servers/{serverId}/users/{username}/block`
+
+Permissao: `Administrator`
+
+Enfileira bloqueio da conta AD (`Disable-ADAccount`) no servidor escolhido.
+
+Response 200:
+
+- mesmo contrato de `AgentCommandDto`
+
+## POST `/ad/servers/{serverId}/users/{username}/unblock`
+
+Permissao: `Administrator`
+
+Enfileira desbloqueio da conta AD (`Enable-ADAccount` + tentativa de `Unlock-ADAccount`).
 
 Response 200:
 

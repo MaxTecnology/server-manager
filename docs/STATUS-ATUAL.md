@@ -33,10 +33,12 @@ Ultima atualizacao: 2026-03-29
 - AD MVP inicial:
   - agent envia snapshot de OUs AD (estrutura organizacional) para a API
   - endpoint admin para listar OUs por servidor AD com dados do snapshot
+  - endpoint admin para buscar usuários AD por servidor (`query`)
+  - endpoint admin para bloquear/desbloquear usuário AD
   - endpoint admin para criar usuario AD via agent
   - endpoint admin para reset de senha AD via agent
   - comando sensivel AD protegido (criptografado) em repouso no banco
-  - tela admin `Active Directory` no frontend (criar/reset + acompanhamento de status + seletor de OU)
+  - tela admin `Active Directory` no frontend (buscar/listar/bloquear/desbloquear + criar/reset + acompanhamento de status + seletor de OU)
   - bloqueio backend/frontend por capability do servidor (RDS x AD)
 
 ## O que falta (proxima etapa apos MVP)

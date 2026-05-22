@@ -6,6 +6,12 @@ namespace SessionManager.Application.Interfaces.Services;
 
 public interface IActiveDirectoryService
 {
+    Task<Result<IReadOnlyList<AdUserSearchItemDto>>> SearchUsersAsync(
+        Guid serverId,
+        SearchAdUsersRequestDto request,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default);
+
     Task<Result<IReadOnlyList<AdOrganizationalUnitDto>>> GetOrganizationalUnitsAsync(
         Guid serverId,
         CancellationToken cancellationToken = default);
@@ -20,6 +26,18 @@ public interface IActiveDirectoryService
         Guid serverId,
         string username,
         ResetAdUserPasswordRequestDto request,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<AgentCommandDto>> BlockUserAsync(
+        Guid serverId,
+        string username,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<AgentCommandDto>> UnblockUserAsync(
+        Guid serverId,
+        string username,
         ActionContext actionContext,
         CancellationToken cancellationToken = default);
 }

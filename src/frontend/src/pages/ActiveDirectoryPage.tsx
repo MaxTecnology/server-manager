@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import type {
   AdOrganizationalUnit,
+  AdUserSearchItem,
   AgentCommand,
   CreateAdUserRequest,
   ResetAdUserPasswordRequest,
+  SearchAdUsersRequest,
   ServerItem
 } from "../types";
 
@@ -46,6 +48,30 @@ function formatOuOption(item: AdOrganizationalUnit) {
   return `${prefix}${item.name} (${item.canonicalName})`;
 }
 
+function getAdUserStatusLabel(user: AdUserSearchItem) {
+  if (!user.enabled) {
+    return "Bloqueado";
+  }
+
+  if (user.lockedOut) {
+    return "Travado";
+  }
+
+  return "Ativo";
+}
+
+function getAdUserStatusClass(user: AdUserSearchItem) {
+  if (!user.enabled) {
+    return "status-pill status-offline";
+  }
+
+  if (user.lockedOut) {
+    return "status-pill status-unknown";
+  }
+
+  return "status-pill status-online";
+}
+
 export function ActiveDirectoryPage() {
   const auth = useAuth();
   const { pushToast } = useToast();
@@ -56,6 +82,10 @@ export function ActiveDirectoryPage() {
   const [loadingServers, setLoadingServers] = useState(false);
   const [loadingOus, setLoadingOus] = useState(false);
   const [ouLoadError, setOuLoadError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [searchedUsers, setSearchedUsers] = useState<AdUserSearchItem[]>([]);
+  const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
   const [submittingCreate, setSubmittingCreate] = useState(false);
   const [submittingReset, setSubmittingReset] = useState(false);
   const [organizationalUnits, setOrganizationalUnits] = useState<AdOrganizationalUnit[]>([]);
@@ -92,6 +122,7 @@ export function ActiveDirectoryPage() {
       setOuLoadError(null);
       if (!adServers.length) {
         setOrganizationalUnits([]);
+        setSearchedUsers([]);
       }
       setSelectedServerId((current) => {
         if (!adServers.length) {
@@ -154,10 +185,13 @@ export function ActiveDirectoryPage() {
     if (!selectedServerId) {
       setOrganizationalUnits([]);
       setOuLoadError(null);
+      setSearchedUsers([]);
+      setSearchQuery("");
       return;
     }
 
     setCreateForm((current) => ({ ...current, organizationalUnitPath: "" }));
+    setSearchedUsers([]);
     void loadOrganizationalUnits(selectedServerId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedServerId, auth.token]);
@@ -270,6 +304,84 @@ export function ActiveDirectoryPage() {
     }
   }
 
+  async function searchAdUsers(event: FormEvent) {
+    event.preventDefault();
+    if (!selectedServerId) {
+      pushToast("error", "Selecione um servidor AD.");
+      return;
+    }
+
+    const normalizedQuery = searchQuery.trim();
+    if (normalizedQuery.length < 2) {
+      pushToast("error", "Informe ao menos 2 caracteres para buscar.");
+      return;
+    }
+
+    setSearchingUsers(true);
+    try {
+      const payload: SearchAdUsersRequest = {
+        query: normalizedQuery,
+        limit: 20
+      };
+
+      const result = await apiRequest<AdUserSearchItem[]>(`/api/ad/servers/${selectedServerId}/users/search`, {
+        method: "POST",
+        token: auth.token,
+        body: payload
+      });
+
+      setSearchedUsers(result);
+      if (result.length === 0) {
+        pushToast("info", "Nenhum usuário AD encontrado para esse filtro.");
+      }
+    } catch (error) {
+      pushToast("error", error instanceof Error ? error.message : "Falha ao buscar usuários AD.");
+    } finally {
+      setSearchingUsers(false);
+    }
+  }
+
+  async function enqueueAdUserAction(username: string, action: "block" | "unblock") {
+    if (!selectedServerId) {
+      pushToast("error", "Selecione um servidor AD.");
+      return;
+    }
+
+    const normalizedUsername = username.trim();
+    if (!normalizedUsername) {
+      pushToast("error", "Username AD inválido.");
+      return;
+    }
+
+    const marker = `${action}:${normalizedUsername.toLowerCase()}`;
+    setProcessingUserAction(marker);
+    try {
+      const command = await apiRequest<AgentCommand>(
+        `/api/ad/servers/${selectedServerId}/users/${encodeURIComponent(normalizedUsername)}/${action}`,
+        {
+          method: "POST",
+          token: auth.token
+        }
+      );
+
+      finalStatusToastRef.current = null;
+      setLastCommand(command);
+      pushToast(
+        "info",
+        `${action === "block" ? "Bloqueio" : "Desbloqueio"} enfileirado para ${normalizedUsername}. CommandId: ${command.id}`
+      );
+    } catch (error) {
+      pushToast(
+        "error",
+        error instanceof Error
+          ? error.message
+          : `Falha ao enfileirar ${action === "block" ? "bloqueio" : "desbloqueio"} AD.`
+      );
+    } finally {
+      setProcessingUserAction(null);
+    }
+  }
+
   return (
     <section>
       <header className="page-header">
@@ -304,6 +416,79 @@ export function ActiveDirectoryPage() {
             </span>
           </p>
         )}
+      </div>
+
+      <div className="panel">
+        <h3>Buscar Usuários AD</h3>
+        <form className="toolbar" onSubmit={searchAdUsers}>
+          <label>
+            Buscar por username ou nome
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="ex: maria, suporte, j.silva"
+            />
+          </label>
+          <button className="primary-button" type="submit" disabled={searchingUsers || !selectedServerId}>
+            {searchingUsers ? "Buscando..." : "Buscar usuários"}
+          </button>
+        </form>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Nome</th>
+                <th>Status AD</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {searchedUsers.map((user) => (
+                <tr key={user.username}>
+                  <td>{user.username}</td>
+                  <td>{user.displayName || "-"}</td>
+                  <td>
+                    <span className={getAdUserStatusClass(user)}>{getAdUserStatusLabel(user)}</span>
+                  </td>
+                  <td>
+                    <div className="button-row">
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() => setResetUsername(user.username)}
+                      >
+                        Usar em reset
+                      </button>
+                      <button
+                        className="danger-button"
+                        type="button"
+                        disabled={processingUserAction !== null || !user.enabled}
+                        onClick={() => void enqueueAdUserAction(user.username, "block")}
+                      >
+                        Bloquear
+                      </button>
+                      <button
+                        className="primary-button"
+                        type="button"
+                        disabled={processingUserAction !== null || (user.enabled && !user.lockedOut)}
+                        onClick={() => void enqueueAdUserAction(user.username, "unblock")}
+                      >
+                        Desbloquear
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {searchedUsers.length === 0 && (
+                <tr>
+                  <td colSpan={4}>Nenhum usuário listado. Faça uma busca para visualizar resultados.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="panel">

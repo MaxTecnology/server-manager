@@ -6,6 +6,7 @@ using SessionManager.Application.DTOs.Agent;
 using SessionManager.Application.Interfaces.Persistence;
 using SessionManager.Application.Interfaces.Security;
 using SessionManager.Application.Interfaces.Services;
+using SessionManager.Domain.Constants;
 using SessionManager.Domain.Entities;
 
 namespace SessionManager.Application.Services;
@@ -13,24 +14,86 @@ namespace SessionManager.Application.Services;
 public sealed class ActiveDirectoryService : IActiveDirectoryService
 {
     private static readonly Regex UsernameRegex = new("^[a-zA-Z0-9._-]{3,64}$", RegexOptions.Compiled);
+    private static readonly Regex SearchQueryRegex = new("^[a-zA-Z0-9._@\\-\\s]{2,64}$", RegexOptions.Compiled);
     private static readonly TimeSpan AgentHeartbeatFreshness = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan AdOuSnapshotFreshness = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan AgentCommandWaitTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan AgentCommandPollInterval = TimeSpan.FromMilliseconds(800);
+    private const int DefaultSearchLimit = 20;
+    private const int MaxSearchLimit = 30;
 
     private readonly IServerRepository _serverRepository;
+    private readonly IAgentCommandRepository _agentCommandRepository;
     private readonly IAgentService _agentService;
     private readonly IAgentCommandProtector _agentCommandProtector;
     private readonly IClock _clock;
 
     public ActiveDirectoryService(
         IServerRepository serverRepository,
+        IAgentCommandRepository agentCommandRepository,
         IAgentService agentService,
         IAgentCommandProtector agentCommandProtector,
         IClock clock)
     {
         _serverRepository = serverRepository;
+        _agentCommandRepository = agentCommandRepository;
         _agentService = agentService;
         _agentCommandProtector = agentCommandProtector;
         _clock = clock;
+    }
+
+    public async Task<Result<IReadOnlyList<AdUserSearchItemDto>>> SearchUsersAsync(
+        Guid serverId,
+        SearchAdUsersRequestDto request,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default)
+    {
+        var serverResult = await GetValidatedAdServerAsync(serverId, cancellationToken);
+        if (!serverResult.IsSuccess || serverResult.Value is null)
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure(
+                serverResult.Error ?? "Servidor inválido para operação AD.");
+        }
+
+        var server = serverResult.Value;
+        if (!HasRecentHeartbeat(server))
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure(
+                "Agent sem heartbeat recente para este servidor AD.");
+        }
+
+        var normalizedQuery = (request.Query ?? string.Empty).Trim();
+        if (!SearchQueryRegex.IsMatch(normalizedQuery))
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure(
+                "Filtro de busca inválido. Use 2 a 64 caracteres alfanuméricos.");
+        }
+
+        var limit = Math.Clamp(request.Limit ?? DefaultSearchLimit, 1, MaxSearchLimit);
+        var plainCommand = BuildSearchUsersCommand(normalizedQuery, limit);
+        var protectedCommand = _agentCommandProtector.ProtectCommand(plainCommand);
+
+        var enqueueResult = await _agentService.EnqueueCommandAsync(
+            serverId,
+            new EnqueueAgentCommandRequestDto { CommandText = protectedCommand },
+            actionContext,
+            cancellationToken);
+
+        if (!enqueueResult.IsSuccess || enqueueResult.Value is null)
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure(
+                enqueueResult.Error ?? "Falha ao enfileirar busca de usuários AD.");
+        }
+
+        var commandId = enqueueResult.Value.Id;
+        var commandResult = await WaitForCommandResultAsync(commandId, cancellationToken);
+        if (!commandResult.IsSuccess || commandResult.Value is null)
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure(
+                commandResult.Error ?? "Falha ao aguardar busca de usuários AD.");
+        }
+
+        return ParseAdUsers(commandResult.Value.ResultOutput, limit);
     }
 
     public async Task<Result<IReadOnlyList<AdOrganizationalUnitDto>>> GetOrganizationalUnitsAsync(
@@ -144,6 +207,62 @@ public sealed class ActiveDirectoryService : IActiveDirectoryService
             cancellationToken);
     }
 
+    public async Task<Result<AgentCommandDto>> BlockUserAsync(
+        Guid serverId,
+        string username,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default)
+    {
+        var serverValidation = await GetValidatedAdServerAsync(serverId, cancellationToken);
+        if (!serverValidation.IsSuccess)
+        {
+            return Result<AgentCommandDto>.Failure(serverValidation.Error ?? "Servidor inválido para operação AD.");
+        }
+
+        var normalizedUsername = username.Trim();
+        if (!UsernameRegex.IsMatch(normalizedUsername))
+        {
+            return Result<AgentCommandDto>.Failure("Username AD inválido.");
+        }
+
+        var plainCommand = BuildBlockUserCommand(normalizedUsername);
+        var protectedCommand = _agentCommandProtector.ProtectCommand(plainCommand);
+
+        return await _agentService.EnqueueCommandAsync(
+            serverId,
+            new EnqueueAgentCommandRequestDto { CommandText = protectedCommand },
+            actionContext,
+            cancellationToken);
+    }
+
+    public async Task<Result<AgentCommandDto>> UnblockUserAsync(
+        Guid serverId,
+        string username,
+        ActionContext actionContext,
+        CancellationToken cancellationToken = default)
+    {
+        var serverValidation = await GetValidatedAdServerAsync(serverId, cancellationToken);
+        if (!serverValidation.IsSuccess)
+        {
+            return Result<AgentCommandDto>.Failure(serverValidation.Error ?? "Servidor inválido para operação AD.");
+        }
+
+        var normalizedUsername = username.Trim();
+        if (!UsernameRegex.IsMatch(normalizedUsername))
+        {
+            return Result<AgentCommandDto>.Failure("Username AD inválido.");
+        }
+
+        var plainCommand = BuildUnblockUserCommand(normalizedUsername);
+        var protectedCommand = _agentCommandProtector.ProtectCommand(plainCommand);
+
+        return await _agentService.EnqueueCommandAsync(
+            serverId,
+            new EnqueueAgentCommandRequestDto { CommandText = protectedCommand },
+            actionContext,
+            cancellationToken);
+    }
+
     private static string BuildCreateUserCommand(
         string username,
         string displayName,
@@ -186,6 +305,26 @@ public sealed class ActiveDirectoryService : IActiveDirectoryService
 
         return
             $"Import-Module ActiveDirectory;$p=ConvertTo-SecureString '{passwordPs}' -AsPlainText -Force;Set-ADAccountPassword -Identity '{usernamePs}' -Reset -NewPassword $p;Set-ADUser -Identity '{usernamePs}' -ChangePasswordAtLogon {changeAtLogonLiteral}{enableAccountPart};Write-Output AD_PASSWORD_RESET_OK";
+    }
+
+    private static string BuildBlockUserCommand(string username)
+    {
+        var usernamePs = Ps(username);
+        return $"Import-Module ActiveDirectory;Disable-ADAccount -Identity '{usernamePs}';Write-Output AD_USER_BLOCK_OK";
+    }
+
+    private static string BuildUnblockUserCommand(string username)
+    {
+        var usernamePs = Ps(username);
+        return
+            $"Import-Module ActiveDirectory;Enable-ADAccount -Identity '{usernamePs}';try {{ Unlock-ADAccount -Identity '{usernamePs}' -ErrorAction Stop }} catch {{ }};Write-Output AD_USER_UNBLOCK_OK";
+    }
+
+    private static string BuildSearchUsersCommand(string query, int limit)
+    {
+        var queryPs = Ps(query);
+        return
+            $"Import-Module ActiveDirectory;$term='{queryPs}';$wild=\"*$term*\";$users=Get-ADUser -Filter \"SamAccountName -like '$wild' -or Name -like '$wild' -or DisplayName -like '$wild'\" -Properties DisplayName,Enabled,LockedOut | Select-Object SamAccountName,DisplayName,Enabled,LockedOut | Sort-Object SamAccountName | Select-Object -First {limit};$json=ConvertTo-Json -InputObject @($users) -Compress;Write-Output $json";
     }
 
     private static string Ps(string value)
@@ -363,6 +502,133 @@ public sealed class ActiveDirectoryService : IActiveDirectoryService
         }
 
         value = null;
+        return false;
+    }
+
+    private async Task<Result<AgentCommand>> WaitForCommandResultAsync(Guid commandId, CancellationToken cancellationToken)
+    {
+        var deadline = _clock.UtcNow.Add(AgentCommandWaitTimeout);
+        while (_clock.UtcNow < deadline)
+        {
+            await Task.Delay(AgentCommandPollInterval, cancellationToken);
+            var state = await _agentCommandRepository.GetByIdReadOnlyAsync(commandId, cancellationToken);
+            if (state is null)
+            {
+                return Result<AgentCommand>.Failure("Comando AD não encontrado após enfileiramento.");
+            }
+
+            if (state.Status == AgentCommandStatuses.Succeeded)
+            {
+                return Result<AgentCommand>.Success(state);
+            }
+
+            if (state.Status == AgentCommandStatuses.Failed)
+            {
+                return Result<AgentCommand>.Failure(state.ErrorMessage ?? "Comando AD falhou no agent.");
+            }
+        }
+
+        return Result<AgentCommand>.Failure("Tempo limite excedido aguardando resultado da busca AD.");
+    }
+
+    private static Result<IReadOnlyList<AdUserSearchItemDto>> ParseAdUsers(string? rawJson, int limit)
+    {
+        if (string.IsNullOrWhiteSpace(rawJson))
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Success(Array.Empty<AdUserSearchItemDto>());
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(rawJson);
+            var items = new List<AdUserSearchItemDto>();
+            if (document.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var element in document.RootElement.EnumerateArray())
+                {
+                    if (TryMapAdUser(element, out var mapped))
+                    {
+                        items.Add(mapped);
+                    }
+                }
+            }
+            else if (document.RootElement.ValueKind == JsonValueKind.Object)
+            {
+                if (TryMapAdUser(document.RootElement, out var mapped))
+                {
+                    items.Add(mapped);
+                }
+            }
+            else
+            {
+                return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure("Formato inválido no retorno da busca AD.");
+            }
+
+            var unique = items
+                .GroupBy(item => item.Username, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First())
+                .OrderBy(item => item.Username, StringComparer.OrdinalIgnoreCase)
+                .Take(limit)
+                .ToArray();
+
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Success(unique);
+        }
+        catch (JsonException)
+        {
+            return Result<IReadOnlyList<AdUserSearchItemDto>>.Failure("Retorno inválido da busca AD.");
+        }
+    }
+
+    private static bool TryMapAdUser(JsonElement element, out AdUserSearchItemDto mapped)
+    {
+        mapped = default!;
+        if (!TryGetPropertyString(element, "SamAccountName", out var username)
+            || string.IsNullOrWhiteSpace(username))
+        {
+            return false;
+        }
+
+        TryGetPropertyString(element, "DisplayName", out var displayName);
+        var enabled = !TryGetPropertyBool(element, "Enabled", out var enabledValue) || enabledValue;
+        var lockedOut = TryGetPropertyBool(element, "LockedOut", out var lockedOutValue) && lockedOutValue;
+
+        mapped = new AdUserSearchItemDto(
+            username.Trim(),
+            string.IsNullOrWhiteSpace(displayName) ? username.Trim() : displayName.Trim(),
+            enabled,
+            lockedOut);
+        return true;
+    }
+
+    private static bool TryGetPropertyBool(JsonElement element, string propertyName, out bool value)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (!property.NameEquals(propertyName) && !property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            switch (property.Value.ValueKind)
+            {
+                case JsonValueKind.True:
+                    value = true;
+                    return true;
+                case JsonValueKind.False:
+                    value = false;
+                    return true;
+                case JsonValueKind.String:
+                    if (bool.TryParse(property.Value.GetString(), out var parsed))
+                    {
+                        value = parsed;
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        value = false;
         return false;
     }
 }
