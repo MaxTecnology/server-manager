@@ -72,6 +72,43 @@ function getAdUserStatusClass(user: AdUserSearchItem) {
   return "status-pill status-online";
 }
 
+function getCommandStatusText(status: string, detailed = false) {
+  const normalized = status.trim().toLowerCase();
+  if (normalized === "succeeded") {
+    return detailed ? "Concluído com sucesso" : "Concluído";
+  }
+
+  if (normalized === "failed") {
+    return detailed ? "Falha na execução" : "Falhou";
+  }
+
+  if (normalized === "running") {
+    return detailed ? "Comando em execução" : "Em execução";
+  }
+
+  if (normalized === "pending") {
+    return detailed ? "Comando na fila de execução" : "Na fila";
+  }
+
+  return status;
+}
+
+function getCommandResultDescription(resultOutput: string | null) {
+  const raw = resultOutput?.trim();
+  if (!raw) {
+    return null;
+  }
+
+  const knownResults: Record<string, string> = {
+    AD_USER_CREATE_OK: "Usuário criado no Active Directory com sucesso.",
+    AD_PASSWORD_RESET_OK: "Senha redefinida no Active Directory com sucesso.",
+    AD_USER_BLOCK_OK: "Usuário bloqueado no Active Directory com sucesso.",
+    AD_USER_UNBLOCK_OK: "Usuário desbloqueado no Active Directory com sucesso."
+  };
+
+  return knownResults[raw] ?? null;
+}
+
 type ActiveDirectoryTab = "users" | "create" | "reset" | "commands";
 
 export function ActiveDirectoryPage() {
@@ -115,8 +152,25 @@ export function ActiveDirectoryPage() {
     () => servers.find((item) => item.id === selectedServerId) ?? null,
     [servers, selectedServerId]
   );
-  const hasLastCommand = lastCommand !== null;
-  const commandStatusLabel = lastCommand?.status ?? "Sem comando";
+  const commandStatusClass = lastCommand ? getStatusClass(lastCommand.status) : "status-pill status-unknown";
+  const commandStatusLabel = lastCommand ? getCommandStatusText(lastCommand.status) : "Sem comando";
+  const commandStatusDetailedLabel = lastCommand ? getCommandStatusText(lastCommand.status, true) : "Sem comando";
+  const commandResultDescription = getCommandResultDescription(lastCommand?.resultOutput ?? null);
+  const activeTabHelpText = useMemo(() => {
+    if (activeTab === "users") {
+      return "Busque usuários pelo nome/login e use as ações para bloquear, desbloquear ou enviar para redefinição de senha.";
+    }
+
+    if (activeTab === "create") {
+      return "Preencha os dados obrigatórios para criar um novo usuário no Active Directory, com OU opcional.";
+    }
+
+    if (activeTab === "reset") {
+      return "Informe o usuário e a nova senha para redefinir o acesso no Active Directory de forma controlada.";
+    }
+
+    return "Acompanhe o último comando executado, incluindo status, horário e resultado retornado pelo agente.";
+  }, [activeTab]);
 
   async function loadServers() {
     setLoadingServers(true);
@@ -393,8 +447,8 @@ export function ActiveDirectoryPage() {
   return (
     <section>
       <header className="page-header">
-        <h2>Active Directory</h2>
-        <p>Operações de usuários AD via agent com auditoria e fila de execução.</p>
+        <h2>Diretório Ativo (AD)</h2>
+        <p>Gerencie usuários do AD com segurança, auditoria e execução controlada pelo agente.</p>
       </header>
 
       <div className="panel">
@@ -418,9 +472,9 @@ export function ActiveDirectoryPage() {
         {loadingServers && <p>Atualizando lista de servidores AD...</p>}
         {selectedServer && (
           <p className="muted-text">
-            Servidor selecionado: <strong>{selectedServer.name}</strong> | Agent{" "}
+            Servidor selecionado: <strong>{selectedServer.name}</strong> | Agente{" "}
             <span className={selectedServer.isAgentOnline ? "status-pill status-online" : "status-pill status-offline"}>
-              {selectedServer.isAgentOnline ? "Online" : "Offline"}
+              {selectedServer.isAgentOnline ? "Conectado" : "Sem comunicação"}
             </span>
           </p>
         )}
@@ -435,7 +489,7 @@ export function ActiveDirectoryPage() {
             aria-selected={activeTab === "users"}
             onClick={() => setActiveTab("users")}
           >
-            Usuários AD
+            Buscar e bloquear usuários
           </button>
           <button
             type="button"
@@ -444,7 +498,7 @@ export function ActiveDirectoryPage() {
             aria-selected={activeTab === "create"}
             onClick={() => setActiveTab("create")}
           >
-            Criar usuário
+            Criar novo usuário
           </button>
           <button
             type="button"
@@ -453,7 +507,7 @@ export function ActiveDirectoryPage() {
             aria-selected={activeTab === "reset"}
             onClick={() => setActiveTab("reset")}
           >
-            Redefinir senha
+            Redefinir senha de acesso
           </button>
           <button
             type="button"
@@ -462,12 +516,13 @@ export function ActiveDirectoryPage() {
             aria-selected={activeTab === "commands"}
             onClick={() => setActiveTab("commands")}
           >
-            Comandos
-            <span className={hasLastCommand ? getStatusClass(commandStatusLabel) : "status-pill status-unknown"}>
+            Acompanhar comandos
+            <span className={commandStatusClass}>
               {commandStatusLabel}
             </span>
           </button>
         </div>
+        <p className="muted-text ad-tab-help">{activeTabHelpText}</p>
       </div>
 
       {activeTab === "users" && (
@@ -683,18 +738,18 @@ export function ActiveDirectoryPage() {
 
       {activeTab === "commands" && (
         <div className="panel ad-tab-panel">
-          <h3>Último Comando AD</h3>
-          {!lastCommand && <p className="muted-text">Nenhum comando executado nesta sessão.</p>}
+          <h3>Acompanhamento do Último Comando</h3>
+          {!lastCommand && <p className="muted-text">Nenhum comando foi executado nesta sessão até o momento.</p>}
           {lastCommand && (
             <>
               <div className="button-row">
-                <span className={getStatusClass(lastCommand.status)}>{lastCommand.status}</span>
+                <span className={getStatusClass(lastCommand.status)}>{commandStatusDetailedLabel}</span>
                 <button className="secondary-button" type="button" onClick={() => void refreshCommand(lastCommand.id)}>
                   Atualizar status
                 </button>
               </div>
               <p>
-                <strong>CommandId:</strong> <code>{lastCommand.id}</code>
+                <strong>ID do comando:</strong> <code>{lastCommand.id}</code>
               </p>
               <p>
                 <strong>Solicitado em:</strong> {formatDateTime(lastCommand.requestedAtUtc)}
@@ -703,6 +758,7 @@ export function ActiveDirectoryPage() {
                 <strong>Concluído em:</strong> {formatDateTime(lastCommand.completedAtUtc)}
               </p>
               {lastCommand.errorMessage && <p className="error-banner">{lastCommand.errorMessage}</p>}
+              {commandResultDescription && <p className="info-banner">{commandResultDescription}</p>}
               {lastCommand.resultOutput && <pre className="command-output">{lastCommand.resultOutput}</pre>}
             </>
           )}

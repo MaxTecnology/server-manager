@@ -298,6 +298,10 @@ select {
   animation: card-enter var(--motion-slow) var(--ease-standard);
 }
 
+.ad-tab-help {
+  margin-top: 0.65rem;
+}
+
 .form-grid {
   display: grid;
   gap: 0.8rem;
