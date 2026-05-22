@@ -31,6 +31,8 @@
 
 - `ProtectedRoute`: exige usuario autenticado
 - `AdminRoute`: exige role `Administrator`
+- em erro `401` de rotas autenticadas, cliente limpa sessao e redireciona automaticamente para `/login`
+- tela de login exibe aviso de sessao expirada quando o redirecionamento automatico ocorre
 
 Importante: o controle real de seguranca continua no backend.
 
@@ -87,11 +89,13 @@ Comportamento atual:
 ## Configuracoes (admin)
 
 - consome `/api/settings`
+- organiza interface em abas: `Parâmetros` e `Processos permitidos`
 - permite atualizar cada chave via `PUT /api/settings/{key}`
 - lista e gerencia processos permitidos
 
 ## Usuarios e perfis (admin)
 
+- organiza interface em abas: `Novo usuário` e `Gerenciar usuários`
 - lista usuarios
 - cria novo usuario
 - ativa/desativa usuario

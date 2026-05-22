@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -11,12 +11,16 @@ type NewUserForm = {
   roles: string[];
 };
 
+type UsersTab = "create" | "manage";
+
 export function UsersPage() {
   const auth = useAuth();
   const { pushToast } = useToast();
   const [users, setUsers] = useState<UserItem[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [passwordDrafts, setPasswordDrafts] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState<UsersTab>("create");
+  const [search, setSearch] = useState("");
   const [form, setForm] = useState<NewUserForm>({
     username: "",
     displayName: "",
@@ -43,6 +47,21 @@ export function UsersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.token]);
 
+  const filteredUsers = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) {
+      return users;
+    }
+
+    return users.filter((user) => {
+      return (
+        user.username.toLowerCase().includes(term) ||
+        user.displayName.toLowerCase().includes(term) ||
+        user.roles.some((role) => role.toLowerCase().includes(term))
+      );
+    });
+  }, [search, users]);
+
   async function createUser(event: FormEvent) {
     event.preventDefault();
     try {
@@ -59,6 +78,7 @@ export function UsersPage() {
       });
       pushToast("success", "Usuário criado com sucesso.");
       await load();
+      setActiveTab("manage");
     } catch (error) {
       pushToast("error", error instanceof Error ? error.message : "Falha ao criar usuário.");
     }
@@ -95,7 +115,7 @@ export function UsersPage() {
   async function setUserPassword(user: UserItem) {
     const nextPassword = passwordDrafts[user.id] ?? "";
     if (!nextPassword || nextPassword.length < 8) {
-      pushToast("error", "A nova senha deve ter no mÃ­nimo 8 caracteres.");
+      pushToast("error", "A nova senha deve ter no mínimo 8 caracteres.");
       return;
     }
 
@@ -120,128 +140,169 @@ export function UsersPage() {
       </header>
 
       <div className="panel">
-        <h3>Novo Usuário</h3>
-        <form className="form-grid" onSubmit={createUser}>
-          <label>
-            Username
-            <input
-              value={form.username}
-              onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-            />
-          </label>
-          <label>
-            Nome de Exibição
-            <input
-              value={form.displayName}
-              onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))}
-            />
-          </label>
-          <label>
-            Senha
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            />
-          </label>
-          <div>
-            <p>Perfis</p>
-            <div className="checkbox-row">
-              {roles.map((role) => (
-                <label key={role}>
-                  <input
-                    type="checkbox"
-                    checked={form.roles.includes(role)}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        roles: event.target.checked
-                          ? [...current.roles, role]
-                          : current.roles.filter((item) => item !== role)
-                      }))
-                    }
-                  />
-                  {role}
-                </label>
-              ))}
-            </div>
-          </div>
-          <button className="primary-button" type="submit">
-            Criar Usuário
+        <div className="ad-tabs" role="tablist" aria-label="Menu usuários">
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "create" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "create"}
+            onClick={() => setActiveTab("create")}
+          >
+            Novo usuário
           </button>
-        </form>
-      </div>
-
-      <div className="panel">
-        <h3>Usuários Cadastrados</h3>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Nome</th>
-                <th>Status</th>
-                <th>Perfis</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.username}</td>
-                  <td>{user.displayName}</td>
-                  <td>{user.isActive ? "Ativo" : "Inativo"}</td>
-                  <td>
-                    <div className="checkbox-row">
-                      {roles.map((role) => {
-                        const checked = user.roles.includes(role);
-                        return (
-                          <label key={`${user.id}-${role}`}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(event) => {
-                                const nextRoles = event.target.checked
-                                  ? [...user.roles, role]
-                                  : user.roles.filter((item) => item !== role);
-                                void setUserRoles(user, nextRoles);
-                              }}
-                            />
-                            {role}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="button-row">
-                      <button className="secondary-button" type="button" onClick={() => void toggleUserStatus(user)}>
-                        {user.isActive ? "Inativar" : "Ativar"}
-                      </button>
-                      <input
-                        type="password"
-                        value={passwordDrafts[user.id] ?? ""}
-                        onChange={(event) =>
-                          setPasswordDrafts((current) => ({ ...current, [user.id]: event.target.value }))
-                        }
-                        placeholder="Nova senha"
-                      />
-                      <button className="ghost-button" type="button" onClick={() => void setUserPassword(user)}>
-                        Trocar senha
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!users.length && (
-                <tr>
-                  <td colSpan={5}>Nenhum usuário cadastrado.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "manage" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "manage"}
+            onClick={() => setActiveTab("manage")}
+          >
+            Gerenciar usuários
+            <span className="status-pill status-unknown">{users.length}</span>
+          </button>
         </div>
       </div>
+
+      {activeTab === "create" && (
+        <div className="panel ad-tab-panel">
+          <h3>Novo Usuário</h3>
+          <form className="form-grid" onSubmit={createUser}>
+            <label>
+              Username
+              <input
+                value={form.username}
+                onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
+              />
+            </label>
+            <label>
+              Nome de Exibição
+              <input
+                value={form.displayName}
+                onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))}
+              />
+            </label>
+            <label>
+              Senha
+              <input
+                type="password"
+                value={form.password}
+                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+              />
+            </label>
+            <div>
+              <p>Perfis</p>
+              <div className="checkbox-row">
+                {roles.map((role) => (
+                  <label key={role}>
+                    <input
+                      type="checkbox"
+                      checked={form.roles.includes(role)}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          roles: event.target.checked
+                            ? [...current.roles, role]
+                            : current.roles.filter((item) => item !== role)
+                        }))
+                      }
+                    />
+                    {role}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <button className="primary-button" type="submit">
+              Criar Usuário
+            </button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === "manage" && (
+        <div className="panel ad-tab-panel">
+          <h3>Usuários Cadastrados</h3>
+          <div className="toolbar">
+            <label>
+              Buscar
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Username, nome ou perfil"
+              />
+            </label>
+            <button className="secondary-button" type="button" onClick={() => void load()}>
+              Atualizar
+            </button>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Nome</th>
+                  <th>Status</th>
+                  <th>Perfis</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.username}</td>
+                    <td>{user.displayName}</td>
+                    <td>{user.isActive ? "Ativo" : "Inativo"}</td>
+                    <td>
+                      <div className="checkbox-row">
+                        {roles.map((role) => {
+                          const checked = user.roles.includes(role);
+                          return (
+                            <label key={`${user.id}-${role}`}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) => {
+                                  const nextRoles = event.target.checked
+                                    ? [...user.roles, role]
+                                    : user.roles.filter((item) => item !== role);
+                                  void setUserRoles(user, nextRoles);
+                                }}
+                              />
+                              {role}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="button-row">
+                        <button className="secondary-button" type="button" onClick={() => void toggleUserStatus(user)}>
+                          {user.isActive ? "Inativar" : "Ativar"}
+                        </button>
+                        <input
+                          type="password"
+                          value={passwordDrafts[user.id] ?? ""}
+                          onChange={(event) =>
+                            setPasswordDrafts((current) => ({ ...current, [user.id]: event.target.value }))
+                          }
+                          placeholder="Nova senha"
+                        />
+                        <button className="ghost-button" type="button" onClick={() => void setUserPassword(user)}>
+                          Trocar senha
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {!filteredUsers.length && (
+                  <tr>
+                    <td colSpan={5}>Nenhum usuário encontrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

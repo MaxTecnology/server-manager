@@ -10,17 +10,35 @@ type EditableSetting = {
   description: string;
 };
 
+type SettingsTab = "parameters" | "processes";
+
 export function SettingsPage() {
   const auth = useAuth();
   const { pushToast } = useToast();
   const [settings, setSettings] = useState<EditableSetting[]>([]);
   const [allowedProcesses, setAllowedProcesses] = useState<AllowedProcess[]>([]);
   const [newProcess, setNewProcess] = useState("");
+  const [searchProcess, setSearchProcess] = useState("");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("parameters");
   const [loading, setLoading] = useState(false);
 
   const settingsMap = useMemo(() => {
     return new Map(settings.map((item) => [item.key, item]));
   }, [settings]);
+
+  const filteredProcesses = useMemo(() => {
+    const term = searchProcess.trim().toLowerCase();
+    if (!term) {
+      return allowedProcesses;
+    }
+
+    return allowedProcesses.filter((item) => {
+      return (
+        item.processName.toLowerCase().includes(term) ||
+        item.createdBy.toLowerCase().includes(term)
+      );
+    });
+  }, [allowedProcesses, searchProcess]);
 
   async function loadData() {
     setLoading(true);
@@ -108,77 +126,114 @@ export function SettingsPage() {
       {loading && <p>Carregando...</p>}
 
       <div className="panel">
-        <h3>Parâmetros do Sistema</h3>
-        <div className="form-grid">
-          {settings.map((setting) => (
-            <div className="setting-row" key={setting.key}>
-              <div>
-                <strong>{setting.key}</strong>
-                <p>{setting.description}</p>
-              </div>
-              <input
-                value={setting.value}
-                onChange={(event) =>
-                  setSettings((current) =>
-                    current.map((item) =>
-                      item.key === setting.key ? { ...item, value: event.target.value } : item
-                    )
-                  )
-                }
-              />
-              <button className="secondary-button" type="button" onClick={() => void saveSetting(setting.key)}>
-                Salvar
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="panel">
-        <h3>Processos Permitidos</h3>
-        <div className="toolbar">
-          <input
-            value={newProcess}
-            onChange={(event) => setNewProcess(event.target.value)}
-            placeholder="ex: excel.exe"
-          />
-          <button className="primary-button" type="button" onClick={() => void addProcess()}>
-            Adicionar
+        <div className="ad-tabs" role="tablist" aria-label="Menu configurações">
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "parameters" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "parameters"}
+            onClick={() => setActiveTab("parameters")}
+          >
+            Parâmetros
+            <span className="status-pill status-unknown">{settings.length}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "processes" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "processes"}
+            onClick={() => setActiveTab("processes")}
+          >
+            Processos permitidos
+            <span className="status-pill status-unknown">{allowedProcesses.length}</span>
           </button>
         </div>
-
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Processo</th>
-                <th>Status</th>
-                <th>Criado por</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allowedProcesses.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.processName}</td>
-                  <td>{item.isActive ? "Ativo" : "Inativo"}</td>
-                  <td>{item.createdBy}</td>
-                  <td>
-                    <button className="secondary-button" type="button" onClick={() => void toggleProcess(item)}>
-                      {item.isActive ? "Desativar" : "Ativar"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!allowedProcesses.length && (
-                <tr>
-                  <td colSpan={4}>Nenhum processo cadastrado.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </div>
+
+      {activeTab === "parameters" && (
+        <div className="panel ad-tab-panel">
+          <h3>Parâmetros do Sistema</h3>
+          <div className="form-grid">
+            {settings.map((setting) => (
+              <div className="setting-row" key={setting.key}>
+                <div>
+                  <strong>{setting.key}</strong>
+                  <p>{setting.description}</p>
+                </div>
+                <input
+                  value={setting.value}
+                  onChange={(event) =>
+                    setSettings((current) =>
+                      current.map((item) =>
+                        item.key === setting.key ? { ...item, value: event.target.value } : item
+                      )
+                    )
+                  }
+                />
+                <button className="secondary-button" type="button" onClick={() => void saveSetting(setting.key)}>
+                  Salvar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "processes" && (
+        <div className="panel ad-tab-panel">
+          <h3>Processos Permitidos</h3>
+          <div className="toolbar">
+            <input
+              value={newProcess}
+              onChange={(event) => setNewProcess(event.target.value)}
+              placeholder="ex: excel.exe"
+            />
+            <button className="primary-button" type="button" onClick={() => void addProcess()}>
+              Adicionar
+            </button>
+            <label>
+              Buscar
+              <input
+                value={searchProcess}
+                onChange={(event) => setSearchProcess(event.target.value)}
+                placeholder="Processo ou criado por"
+              />
+            </label>
+          </div>
+
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Processo</th>
+                  <th>Status</th>
+                  <th>Criado por</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProcesses.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.processName}</td>
+                    <td>{item.isActive ? "Ativo" : "Inativo"}</td>
+                    <td>{item.createdBy}</td>
+                    <td>
+                      <button className="secondary-button" type="button" onClick={() => void toggleProcess(item)}>
+                        {item.isActive ? "Desativar" : "Ativar"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {!filteredProcesses.length && (
+                  <tr>
+                    <td colSpan={4}>Nenhum processo encontrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

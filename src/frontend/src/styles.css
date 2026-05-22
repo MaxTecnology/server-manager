@@ -446,6 +446,13 @@ button:disabled {
   color: var(--error-text);
 }
 
+.info-banner {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: #e1efff;
+  color: #0e3e71;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

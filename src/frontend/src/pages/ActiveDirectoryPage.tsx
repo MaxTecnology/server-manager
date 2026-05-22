@@ -259,6 +259,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setActiveTab("commands");
       pushToast("info", `Criação de usuário enfileirada. CommandId: ${command.id}`);
       setCreateForm((current) => ({
         ...current,
@@ -297,6 +298,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setActiveTab("commands");
       pushToast("info", `Reset de senha enfileirado. CommandId: ${command.id}`);
       setResetForm((current) => ({
         ...current,
@@ -371,6 +373,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setActiveTab("commands");
       pushToast(
         "info",
         `${action === "block" ? "Bloqueio" : "Desbloqueio"} enfileirado para ${normalizedUsername}. CommandId: ${command.id}`

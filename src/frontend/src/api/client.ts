@@ -5,6 +5,31 @@ type ApiOptions = {
 };
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+type AuthFailureHandler = () => void;
+
+let authFailureHandler: AuthFailureHandler | null = null;
+let authFailureNotified = false;
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
+export function setAuthFailureHandler(handler: AuthFailureHandler | null) {
+  authFailureHandler = handler;
+  if (!handler) {
+    authFailureNotified = false;
+  }
+}
+
+export function resetAuthFailureFlag() {
+  authFailureNotified = false;
+}
 
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -26,7 +51,14 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     } catch {
       message = response.statusText || message;
     }
-    throw new Error(message);
+
+    const isAuthFailure = response.status === 401;
+    if (isAuthFailure && options.token && authFailureHandler && !authFailureNotified) {
+      authFailureNotified = true;
+      authFailureHandler();
+    }
+
+    throw new ApiError(response.status, message);
   }
 
   if (response.status === 204) {

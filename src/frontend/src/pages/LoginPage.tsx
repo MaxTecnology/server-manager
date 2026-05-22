@@ -1,6 +1,6 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { authExpiredNoticeStorageKey, useAuth } from "../context/AuthContext";
 
 export function LoginPage() {
   const auth = useAuth();
@@ -9,11 +9,20 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(authExpiredNoticeStorageKey) === "1") {
+      setSessionNotice("Sua sessão expirou. Faça login novamente para continuar.");
+      sessionStorage.removeItem(authExpiredNoticeStorageKey);
+    }
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setSessionNotice(null);
 
     try {
       await auth.login(username, password);
@@ -32,6 +41,7 @@ export function LoginPage() {
         <h1>Gerenciador de Sessões RDS</h1>
         <p>Faça login para administrar sessões com segurança.</p>
         <form onSubmit={onSubmit} className="form-grid">
+          {sessionNotice && <div className="info-banner">{sessionNotice}</div>}
           <label>
             Usuário
             <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="usuario" />
