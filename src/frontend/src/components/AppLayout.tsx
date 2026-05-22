@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function makeClassName(isActive: boolean) {
@@ -8,6 +8,7 @@ function makeClassName(isActive: boolean) {
 export function AppLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="app-shell">
@@ -63,7 +64,9 @@ export function AppLayout() {
       </aside>
 
       <main className="content-area">
-        <Outlet />
+        <div className="route-shell" key={location.pathname}>
+          <Outlet />
+        </div>
       </main>
     </div>
   );

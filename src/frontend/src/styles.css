@@ -15,6 +15,11 @@
   --success-text: #106237;
   --error-bg: #ffe3e3;
   --error-text: #7f1d1d;
+  --focus-ring: rgba(9, 120, 179, 0.24);
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 360ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -25,6 +30,7 @@ body {
   margin: 0;
   font-family: "Source Sans 3", sans-serif;
   background: radial-gradient(circle at 20% 20%, #1f3353 0%, var(--bg-end) 55%, #09101b 100%);
+  background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
 }
@@ -62,6 +68,7 @@ select {
   box-shadow: 0 20px 60px rgba(11, 20, 33, 0.35);
   display: grid;
   gap: 1rem;
+  animation: card-enter var(--motion-slow) var(--ease-standard);
 }
 
 .app-shell {
@@ -77,6 +84,8 @@ select {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 1.5rem;
+  border-right: 1px solid rgba(146, 183, 221, 0.16);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
 }
 
 .brand h1 {
@@ -103,7 +112,11 @@ select {
   border-radius: 10px;
   color: #d6e7ff;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard);
 }
 
 .nav-link:hover {
@@ -114,6 +127,7 @@ select {
 .nav-link-active {
   background: linear-gradient(90deg, #005f8f 0%, #0b7bb3 100%);
   color: #ffffff;
+  box-shadow: inset 3px 0 0 #8ed1f6;
 }
 
 .sidebar-footer {
@@ -125,6 +139,23 @@ select {
 .content-area {
   padding: 2rem;
   background: linear-gradient(180deg, #f0f5fb 0%, #e7eef7 100%);
+  position: relative;
+}
+
+.content-area::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(36rem 16rem at 90% -10%, rgba(122, 183, 222, 0.18), transparent 70%),
+    linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.38));
+}
+
+.route-shell {
+  position: relative;
+  z-index: 1;
+  animation: page-enter var(--motion-slow) var(--ease-standard);
 }
 
 .page-header {
@@ -144,6 +175,16 @@ select {
   padding: 1rem;
   margin-bottom: 1rem;
   box-shadow: 0 8px 18px rgba(15, 35, 63, 0.05);
+  transition:
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+}
+
+.panel:hover {
+  transform: translateY(-2px);
+  border-color: #c8d9ec;
+  box-shadow: 0 14px 28px rgba(15, 35, 63, 0.1);
 }
 
 .metrics-grid {
@@ -159,6 +200,30 @@ select {
   padding: 1rem;
   display: grid;
   gap: 0.4rem;
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard);
+  animation: card-enter var(--motion-slow) var(--ease-standard);
+  animation-fill-mode: both;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  border-color: #c3d7ec;
+  box-shadow: 0 14px 26px rgba(16, 39, 66, 0.1);
+}
+
+.metric-card:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.metric-card:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.metric-card:nth-child(4) {
+  animation-delay: 180ms;
 }
 
 .metric-card strong {
@@ -196,6 +261,22 @@ select {
   border-radius: 10px;
   padding: 0.58rem 0.72rem;
   background: #fff;
+  transition:
+    border-color var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    background-color var(--motion-base) var(--ease-standard);
+}
+
+input:hover,
+select:hover {
+  border-color: #aec6df;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: #2f7cb0;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .field-help {
@@ -218,6 +299,14 @@ td {
   padding: 0.68rem;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
+}
+
+tbody tr {
+  transition: background-color var(--motion-fast) var(--ease-standard);
+}
+
+tbody tr:hover {
+  background: #f4f8fd;
 }
 
 th {
@@ -245,21 +334,43 @@ th {
   padding: 0.55rem 0.85rem;
   cursor: pointer;
   font-weight: 600;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    filter var(--motion-base) var(--ease-standard),
+    background var(--motion-base) var(--ease-standard);
+}
+
+.primary-button:not(:disabled):hover,
+.secondary-button:not(:disabled):hover,
+.danger-button:not(:disabled):hover,
+.ghost-button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:not(:disabled):active,
+.secondary-button:not(:disabled):active,
+.danger-button:not(:disabled):active,
+.ghost-button:not(:disabled):active {
+  transform: translateY(0);
 }
 
 .primary-button {
   background: linear-gradient(90deg, var(--brand) 0%, #0a84bf 100%);
   color: #fff;
+  box-shadow: 0 6px 14px rgba(2, 74, 110, 0.28);
 }
 
 .secondary-button {
   background: #e7eff8;
   color: #1f3a5a;
+  box-shadow: inset 0 0 0 1px #d0deee;
 }
 
 .danger-button {
   background: var(--danger);
   color: #fff;
+  box-shadow: 0 6px 14px rgba(109, 25, 25, 0.24);
 }
 
 .ghost-button {
@@ -283,10 +394,20 @@ button:disabled {
 .status-pill {
   display: inline-flex;
   align-items: center;
+  gap: 0.28rem;
   border-radius: 999px;
   padding: 0.16rem 0.52rem;
   font-weight: 700;
   font-size: 0.82rem;
+}
+
+.status-pill::before {
+  content: "";
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: currentcolor;
+  opacity: 0.7;
 }
 
 .status-online {
@@ -364,6 +485,7 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 1rem;
+  animation: overlay-enter var(--motion-base) var(--ease-standard);
 }
 
 .modal-card {
@@ -373,6 +495,7 @@ button:disabled {
   padding: 1rem;
   display: grid;
   gap: 0.9rem;
+  animation: modal-enter var(--motion-slow) var(--ease-standard);
 }
 
 .modal-header {
@@ -398,6 +521,17 @@ button:disabled {
   text-align: left;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(8, 20, 37, 0.22);
+  animation: toast-enter var(--motion-base) var(--ease-standard);
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    filter var(--motion-base) var(--ease-standard);
+}
+
+.toast:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.02);
+  box-shadow: 0 12px 22px rgba(8, 20, 37, 0.26);
 }
 
 .toast-success {
@@ -428,6 +562,86 @@ button:disabled {
   white-space: pre-wrap;
 }
 
+section > .panel:nth-of-type(1) {
+  animation: card-enter var(--motion-slow) var(--ease-standard);
+}
+
+section > .panel:nth-of-type(2) {
+  animation: card-enter var(--motion-slow) var(--ease-standard);
+  animation-delay: 50ms;
+  animation-fill-mode: both;
+}
+
+section > .panel:nth-of-type(3) {
+  animation: card-enter var(--motion-slow) var(--ease-standard);
+  animation-delay: 100ms;
+  animation-fill-mode: both;
+}
+
+section > .panel:nth-of-type(4) {
+  animation: card-enter var(--motion-slow) var(--ease-standard);
+  animation-delay: 150ms;
+  animation-fill-mode: both;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes overlay-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 1100px) {
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -449,5 +663,16 @@ button:disabled {
 
   .setting-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

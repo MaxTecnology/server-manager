@@ -102,6 +102,15 @@ Comportamento atual:
 - erros da API sao convertidos em `toast`
 - URL base configuravel por `VITE_API_BASE_URL`
 
+## UX e animacoes
+
+- transicao suave entre rotas no `AppLayout` para reduzir troca brusca de contexto
+- entrada progressiva de paineis e cards principais
+- microinteracoes em botoes, inputs, tabelas e toasts (hover/focus/active)
+- destaque visual refinado de status pills (`Online/Offline/Unknown`)
+- animacao de abertura para modal e overlay
+- suporte a acessibilidade com `prefers-reduced-motion` para reduzir animacoes
+
 Arquivo exemplo:
 
 - `src/frontend/.env.example`
