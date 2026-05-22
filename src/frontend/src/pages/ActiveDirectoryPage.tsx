@@ -72,6 +72,8 @@ function getAdUserStatusClass(user: AdUserSearchItem) {
   return "status-pill status-online";
 }
 
+type ActiveDirectoryTab = "users" | "create" | "reset" | "commands";
+
 export function ActiveDirectoryPage() {
   const auth = useAuth();
   const { pushToast } = useToast();
@@ -89,6 +91,7 @@ export function ActiveDirectoryPage() {
   const [submittingCreate, setSubmittingCreate] = useState(false);
   const [submittingReset, setSubmittingReset] = useState(false);
   const [organizationalUnits, setOrganizationalUnits] = useState<AdOrganizationalUnit[]>([]);
+  const [activeTab, setActiveTab] = useState<ActiveDirectoryTab>("users");
 
   const [createForm, setCreateForm] = useState<CreateAdUserRequest>({
     username: "",
@@ -112,6 +115,8 @@ export function ActiveDirectoryPage() {
     () => servers.find((item) => item.id === selectedServerId) ?? null,
     [servers, selectedServerId]
   );
+  const hasLastCommand = lastCommand !== null;
+  const commandStatusLabel = lastCommand?.status ?? "Sem comando";
 
   async function loadServers() {
     setLoadingServers(true);
@@ -419,227 +424,285 @@ export function ActiveDirectoryPage() {
       </div>
 
       <div className="panel">
-        <h3>Buscar Usuários AD</h3>
-        <form className="toolbar" onSubmit={searchAdUsers}>
-          <label>
-            Buscar por username ou nome
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="ex: maria, suporte, j.silva"
-            />
-          </label>
-          <button className="primary-button" type="submit" disabled={searchingUsers || !selectedServerId}>
-            {searchingUsers ? "Buscando..." : "Buscar usuários"}
+        <div className="ad-tabs" role="tablist" aria-label="Menu Active Directory">
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "users" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "users"}
+            onClick={() => setActiveTab("users")}
+          >
+            Usuários AD
           </button>
-        </form>
-
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Nome</th>
-                <th>Status AD</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {searchedUsers.map((user) => (
-                <tr key={user.username}>
-                  <td>{user.username}</td>
-                  <td>{user.displayName || "-"}</td>
-                  <td>
-                    <span className={getAdUserStatusClass(user)}>{getAdUserStatusLabel(user)}</span>
-                  </td>
-                  <td>
-                    <div className="button-row">
-                      <button
-                        className="secondary-button"
-                        type="button"
-                        onClick={() => setResetUsername(user.username)}
-                      >
-                        Usar em reset
-                      </button>
-                      <button
-                        className="danger-button"
-                        type="button"
-                        disabled={processingUserAction !== null || !user.enabled}
-                        onClick={() => void enqueueAdUserAction(user.username, "block")}
-                      >
-                        Bloquear
-                      </button>
-                      <button
-                        className="primary-button"
-                        type="button"
-                        disabled={processingUserAction !== null || (user.enabled && !user.lockedOut)}
-                        onClick={() => void enqueueAdUserAction(user.username, "unblock")}
-                      >
-                        Desbloquear
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {searchedUsers.length === 0 && (
-                <tr>
-                  <td colSpan={4}>Nenhum usuário listado. Faça uma busca para visualizar resultados.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "create" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "create"}
+            onClick={() => setActiveTab("create")}
+          >
+            Criar usuário
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "reset" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "reset"}
+            onClick={() => setActiveTab("reset")}
+          >
+            Redefinir senha
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className={`ad-tab-button ${activeTab === "commands" ? "ad-tab-button-active" : ""}`}
+            aria-selected={activeTab === "commands"}
+            onClick={() => setActiveTab("commands")}
+          >
+            Comandos
+            <span className={hasLastCommand ? getStatusClass(commandStatusLabel) : "status-pill status-unknown"}>
+              {commandStatusLabel}
+            </span>
+          </button>
         </div>
       </div>
 
-      <div className="panel">
-        <h3>Criar Usuário AD</h3>
-        <form className="form-grid" onSubmit={submitCreateUser}>
-          <label>
-            Username (sAMAccountName)
-            <input
-              value={createForm.username}
-              onChange={(event) => setCreateForm((current) => ({ ...current, username: event.target.value }))}
-            />
-          </label>
-          <label>
-            Nome de exibição
-            <input
-              value={createForm.displayName}
-              onChange={(event) => setCreateForm((current) => ({ ...current, displayName: event.target.value }))}
-            />
-          </label>
-          <label>
-            Senha inicial
-            <input
-              type="password"
-              value={createForm.password}
-              onChange={(event) => setCreateForm((current) => ({ ...current, password: event.target.value }))}
-            />
-          </label>
-          <label>
-            UPN (opcional)
-            <input
-              value={createForm.userPrincipalName ?? ""}
-              onChange={(event) => setCreateForm((current) => ({ ...current, userPrincipalName: event.target.value }))}
-              placeholder="usuario@dominio.local"
-            />
-          </label>
-          <label>
-            OU (selecionar da estrutura)
-            <div className="button-row">
-              <select
+      {activeTab === "users" && (
+        <div className="panel ad-tab-panel">
+          <h3>Buscar, Bloquear e Desbloquear</h3>
+          <form className="toolbar" onSubmit={searchAdUsers}>
+            <label>
+              Buscar por username ou nome
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="ex: maria, suporte, j.silva"
+              />
+            </label>
+            <button className="primary-button" type="submit" disabled={searchingUsers || !selectedServerId}>
+              {searchingUsers ? "Buscando..." : "Buscar usuários"}
+            </button>
+          </form>
+
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Nome</th>
+                  <th>Status AD</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {searchedUsers.map((user) => (
+                  <tr key={user.username}>
+                    <td>{user.username}</td>
+                    <td>{user.displayName || "-"}</td>
+                    <td>
+                      <span className={getAdUserStatusClass(user)}>{getAdUserStatusLabel(user)}</span>
+                    </td>
+                    <td>
+                      <div className="button-row">
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          onClick={() => {
+                            setResetUsername(user.username);
+                            setActiveTab("reset");
+                          }}
+                        >
+                          Usar em reset
+                        </button>
+                        <button
+                          className="danger-button"
+                          type="button"
+                          disabled={processingUserAction !== null || !user.enabled}
+                          onClick={() => void enqueueAdUserAction(user.username, "block")}
+                        >
+                          Bloquear
+                        </button>
+                        <button
+                          className="primary-button"
+                          type="button"
+                          disabled={processingUserAction !== null || (user.enabled && !user.lockedOut)}
+                          onClick={() => void enqueueAdUserAction(user.username, "unblock")}
+                        >
+                          Desbloquear
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {searchedUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>Nenhum usuário listado. Faça uma busca para visualizar resultados.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "create" && (
+        <div className="panel ad-tab-panel">
+          <h3>Criar Usuário AD</h3>
+          <form className="form-grid" onSubmit={submitCreateUser}>
+            <label>
+              Username (sAMAccountName)
+              <input
+                value={createForm.username}
+                onChange={(event) => setCreateForm((current) => ({ ...current, username: event.target.value }))}
+              />
+            </label>
+            <label>
+              Nome de exibição
+              <input
+                value={createForm.displayName}
+                onChange={(event) => setCreateForm((current) => ({ ...current, displayName: event.target.value }))}
+              />
+            </label>
+            <label>
+              Senha inicial
+              <input
+                type="password"
+                value={createForm.password}
+                onChange={(event) => setCreateForm((current) => ({ ...current, password: event.target.value }))}
+              />
+            </label>
+            <label>
+              UPN (opcional)
+              <input
+                value={createForm.userPrincipalName ?? ""}
+                onChange={(event) => setCreateForm((current) => ({ ...current, userPrincipalName: event.target.value }))}
+                placeholder="usuario@dominio.local"
+              />
+            </label>
+            <label>
+              OU (selecionar da estrutura)
+              <div className="button-row">
+                <select
+                  value={createForm.organizationalUnitPath ?? ""}
+                  onChange={(event) =>
+                    setCreateForm((current) => ({ ...current, organizationalUnitPath: event.target.value }))
+                  }
+                >
+                  <option value="">Padrão do domínio (sem OU específica)</option>
+                  {organizationalUnits.map((item) => (
+                    <option key={item.distinguishedName} value={item.distinguishedName}>
+                      {formatOuOption(item)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => void loadOrganizationalUnits(selectedServerId)}
+                  disabled={!selectedServerId || loadingOus}
+                >
+                  {loadingOus ? "Atualizando OUs..." : "Atualizar OUs"}
+                </button>
+              </div>
+              {ouLoadError && <span className="field-help error-text">{ouLoadError}</span>}
+              {!ouLoadError && !loadingOus && organizationalUnits.length > 0 && (
+                <span className="field-help">OUs disponíveis: {organizationalUnits.length}</span>
+              )}
+            </label>
+            <label>
+              OU path manual (opcional)
+              <input
                 value={createForm.organizationalUnitPath ?? ""}
                 onChange={(event) =>
                   setCreateForm((current) => ({ ...current, organizationalUnitPath: event.target.value }))
                 }
-              >
-                <option value="">Padrão do domínio (sem OU específica)</option>
-                {organizationalUnits.map((item) => (
-                  <option key={item.distinguishedName} value={item.distinguishedName}>
-                    {formatOuOption(item)}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => void loadOrganizationalUnits(selectedServerId)}
-                disabled={!selectedServerId || loadingOus}
-              >
-                {loadingOus ? "Atualizando OUs..." : "Atualizar OUs"}
-              </button>
-            </div>
-            {ouLoadError && <span className="field-help error-text">{ouLoadError}</span>}
-            {!ouLoadError && !loadingOus && organizationalUnits.length > 0 && (
-              <span className="field-help">OUs disponíveis: {organizationalUnits.length}</span>
-            )}
-          </label>
-          <label>
-            OU path manual (opcional)
-            <input
-              value={createForm.organizationalUnitPath ?? ""}
-              onChange={(event) =>
-                setCreateForm((current) => ({ ...current, organizationalUnitPath: event.target.value }))
-              }
-              placeholder="OU=Usuarios,DC=empresa,DC=local"
-            />
-            <span className="field-help">Pode editar manualmente se precisar de um DN específico.</span>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={createForm.changePasswordAtLogon}
-              onChange={(event) =>
-                setCreateForm((current) => ({ ...current, changePasswordAtLogon: event.target.checked }))
-              }
-            />
-            Forçar troca de senha no próximo logon
-          </label>
-          <button className="primary-button" type="submit" disabled={submittingCreate || !selectedServerId}>
-            {submittingCreate ? "Enfileirando..." : "Criar usuário"}
-          </button>
-        </form>
-      </div>
-
-      <div className="panel">
-        <h3>Resetar Senha AD</h3>
-        <form className="form-grid" onSubmit={submitResetPassword}>
-          <label>
-            Username (sAMAccountName)
-            <input value={resetUsername} onChange={(event) => setResetUsername(event.target.value)} />
-          </label>
-          <label>
-            Nova senha
-            <input
-              type="password"
-              value={resetForm.password}
-              onChange={(event) => setResetForm((current) => ({ ...current, password: event.target.value }))}
-            />
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={resetForm.changePasswordAtLogon}
-              onChange={(event) =>
-                setResetForm((current) => ({ ...current, changePasswordAtLogon: event.target.checked }))
-              }
-            />
-            Forçar troca de senha no próximo logon
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={resetForm.enableAccount}
-              onChange={(event) => setResetForm((current) => ({ ...current, enableAccount: event.target.checked }))}
-            />
-            Reativar conta após reset
-          </label>
-          <button className="primary-button" type="submit" disabled={submittingReset || !selectedServerId}>
-            {submittingReset ? "Enfileirando..." : "Resetar senha"}
-          </button>
-        </form>
-      </div>
-
-      {lastCommand && (
-        <div className="panel">
-          <h3>Último Comando AD</h3>
-          <div className="button-row">
-            <span className={getStatusClass(lastCommand.status)}>{lastCommand.status}</span>
-            <button className="secondary-button" type="button" onClick={() => void refreshCommand(lastCommand.id)}>
-              Atualizar status
+                placeholder="OU=Usuarios,DC=empresa,DC=local"
+              />
+              <span className="field-help">Pode editar manualmente se precisar de um DN específico.</span>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={createForm.changePasswordAtLogon}
+                onChange={(event) =>
+                  setCreateForm((current) => ({ ...current, changePasswordAtLogon: event.target.checked }))
+                }
+              />
+              Forçar troca de senha no próximo logon
+            </label>
+            <button className="primary-button" type="submit" disabled={submittingCreate || !selectedServerId}>
+              {submittingCreate ? "Enfileirando..." : "Criar usuário"}
             </button>
-          </div>
-          <p>
-            <strong>CommandId:</strong> <code>{lastCommand.id}</code>
-          </p>
-          <p>
-            <strong>Solicitado em:</strong> {formatDateTime(lastCommand.requestedAtUtc)}
-          </p>
-          <p>
-            <strong>Concluído em:</strong> {formatDateTime(lastCommand.completedAtUtc)}
-          </p>
-          {lastCommand.errorMessage && <p className="error-banner">{lastCommand.errorMessage}</p>}
-          {lastCommand.resultOutput && <pre className="command-output">{lastCommand.resultOutput}</pre>}
+          </form>
+        </div>
+      )}
+
+      {activeTab === "reset" && (
+        <div className="panel ad-tab-panel">
+          <h3>Redefinir Senha AD</h3>
+          <form className="form-grid" onSubmit={submitResetPassword}>
+            <label>
+              Username (sAMAccountName)
+              <input value={resetUsername} onChange={(event) => setResetUsername(event.target.value)} />
+            </label>
+            <label>
+              Nova senha
+              <input
+                type="password"
+                value={resetForm.password}
+                onChange={(event) => setResetForm((current) => ({ ...current, password: event.target.value }))}
+              />
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={resetForm.changePasswordAtLogon}
+                onChange={(event) =>
+                  setResetForm((current) => ({ ...current, changePasswordAtLogon: event.target.checked }))
+                }
+              />
+              Forçar troca de senha no próximo logon
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={resetForm.enableAccount}
+                onChange={(event) => setResetForm((current) => ({ ...current, enableAccount: event.target.checked }))}
+              />
+              Reativar conta após reset
+            </label>
+            <button className="primary-button" type="submit" disabled={submittingReset || !selectedServerId}>
+              {submittingReset ? "Enfileirando..." : "Resetar senha"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === "commands" && (
+        <div className="panel ad-tab-panel">
+          <h3>Último Comando AD</h3>
+          {!lastCommand && <p className="muted-text">Nenhum comando executado nesta sessão.</p>}
+          {lastCommand && (
+            <>
+              <div className="button-row">
+                <span className={getStatusClass(lastCommand.status)}>{lastCommand.status}</span>
+                <button className="secondary-button" type="button" onClick={() => void refreshCommand(lastCommand.id)}>
+                  Atualizar status
+                </button>
+              </div>
+              <p>
+                <strong>CommandId:</strong> <code>{lastCommand.id}</code>
+              </p>
+              <p>
+                <strong>Solicitado em:</strong> {formatDateTime(lastCommand.requestedAtUtc)}
+              </p>
+              <p>
+                <strong>Concluído em:</strong> {formatDateTime(lastCommand.completedAtUtc)}
+              </p>
+              {lastCommand.errorMessage && <p className="error-banner">{lastCommand.errorMessage}</p>}
+              {lastCommand.resultOutput && <pre className="command-output">{lastCommand.resultOutput}</pre>}
+            </>
+          )}
         </div>
       )}
     </section>

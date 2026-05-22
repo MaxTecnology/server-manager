@@ -75,6 +75,7 @@ Comportamento atual:
 ## Active Directory (admin)
 
 - consome `/api/servers` filtrando `supportsAd = true`
+- organiza operacoes em abas: `Usuarios AD`, `Criar usuario`, `Redefinir senha`, `Comandos`
 - busca usuarios AD via `POST /api/ad/servers/{serverId}/users/search`
 - lista status de conta (ativo/bloqueado/travado) por usuário retornado
 - enfileira criacao de usuario via `POST /api/ad/servers/{serverId}/users`
