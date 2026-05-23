@@ -85,6 +85,7 @@ Comportamento atual:
 - enfileira bloqueio via `POST /api/ad/servers/{serverId}/users/{username}/block`
 - enfileira desbloqueio via `POST /api/ad/servers/{serverId}/users/{username}/unblock`
 - acompanha status via `GET /api/agent-commands/{commandId}` com polling
+- ao concluir comando AD com sucesso, a tela reaproveita a ultima busca e atualiza automaticamente a lista de usuarios (sem exigir nova busca manual)
 
 ## Configuracoes (admin)
 

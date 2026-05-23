@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -110,6 +110,10 @@ function getCommandResultDescription(resultOutput: string | null) {
 }
 
 type ActiveDirectoryTab = "users" | "create" | "reset" | "commands";
+type CommandContext =
+  | { origin: "create" }
+  | { origin: "reset"; username: string }
+  | { origin: "user-action"; username: string; action: "block" | "unblock" };
 
 export function ActiveDirectoryPage() {
   const auth = useAuth();
@@ -123,6 +127,7 @@ export function ActiveDirectoryPage() {
   const [ouLoadError, setOuLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const [refreshingUsersAfterCommand, setRefreshingUsersAfterCommand] = useState(false);
   const [searchedUsers, setSearchedUsers] = useState<AdUserSearchItem[]>([]);
   const [processingUserAction, setProcessingUserAction] = useState<string | null>(null);
   const [submittingCreate, setSubmittingCreate] = useState(false);
@@ -147,6 +152,8 @@ export function ActiveDirectoryPage() {
   });
 
   const [lastCommand, setLastCommand] = useState<AgentCommand | null>(null);
+  const [lastSuccessfulSearchQuery, setLastSuccessfulSearchQuery] = useState("");
+  const [lastCommandContext, setLastCommandContext] = useState<CommandContext | null>(null);
 
   const selectedServer = useMemo(
     () => servers.find((item) => item.id === selectedServerId) ?? null,
@@ -235,6 +242,54 @@ export function ActiveDirectoryPage() {
     }
   }
 
+  const searchUsersByQuery = useCallback(
+    async (query: string, silent = false) => {
+      const normalizedQuery = query.trim();
+      if (!selectedServerId || normalizedQuery.length < 2) {
+        return;
+      }
+
+      if (silent) {
+        setRefreshingUsersAfterCommand(true);
+      } else {
+        setSearchingUsers(true);
+      }
+
+      try {
+        const payload: SearchAdUsersRequest = {
+          query: normalizedQuery,
+          limit: 20
+        };
+
+        const result = await apiRequest<AdUserSearchItem[]>(`/api/ad/servers/${selectedServerId}/users/search`, {
+          method: "POST",
+          token: auth.token,
+          body: payload
+        });
+
+        setSearchedUsers(result);
+        setLastSuccessfulSearchQuery(normalizedQuery);
+
+        if (!silent && result.length === 0) {
+          pushToast("info", "Nenhum usuário AD encontrado para esse filtro.");
+        }
+      } catch (error) {
+        if (!silent) {
+          pushToast("error", error instanceof Error ? error.message : "Falha ao buscar usuários AD.");
+        } else {
+          pushToast("error", "Comando executado, mas não foi possível atualizar a lista automaticamente.");
+        }
+      } finally {
+        if (silent) {
+          setRefreshingUsersAfterCommand(false);
+        } else {
+          setSearchingUsers(false);
+        }
+      }
+    },
+    [selectedServerId, auth.token, pushToast]
+  );
+
   useEffect(() => {
     void loadServers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -246,11 +301,13 @@ export function ActiveDirectoryPage() {
       setOuLoadError(null);
       setSearchedUsers([]);
       setSearchQuery("");
+      setLastSuccessfulSearchQuery("");
       return;
     }
 
     setCreateForm((current) => ({ ...current, organizationalUnitPath: "" }));
     setSearchedUsers([]);
+    setLastSuccessfulSearchQuery("");
     void loadOrganizationalUnits(selectedServerId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedServerId, auth.token]);
@@ -266,6 +323,26 @@ export function ActiveDirectoryPage() {
       if (finalStatusToastRef.current !== marker) {
         finalStatusToastRef.current = marker;
         if (lastCommand.status === "Succeeded") {
+          if (lastCommandContext?.origin === "user-action") {
+            setSearchedUsers((current) =>
+              current.map((user) => {
+                if (user.username.toLowerCase() !== lastCommandContext.username.toLowerCase()) {
+                  return user;
+                }
+
+                if (lastCommandContext.action === "block") {
+                  return { ...user, enabled: false, lockedOut: false };
+                }
+
+                return { ...user, enabled: true, lockedOut: false };
+              })
+            );
+          }
+
+          if (lastSuccessfulSearchQuery.length >= 2) {
+            void searchUsersByQuery(lastSuccessfulSearchQuery, true);
+          }
+
           pushToast("success", "Comando AD executado com sucesso.");
         } else {
           pushToast("error", lastCommand.errorMessage ?? "Comando AD falhou no agent.");
@@ -280,7 +357,7 @@ export function ActiveDirectoryPage() {
 
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastCommand?.id, lastCommand?.status, auth.token]);
+  }, [lastCommand?.id, lastCommand?.status, auth.token, lastCommandContext, lastSuccessfulSearchQuery, searchUsersByQuery]);
 
   async function submitCreateUser(event: FormEvent) {
     event.preventDefault();
@@ -313,6 +390,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setLastCommandContext({ origin: "create" });
       setActiveTab("commands");
       pushToast("info", `Criação de usuário enfileirada. CommandId: ${command.id}`);
       setCreateForm((current) => ({
@@ -352,6 +430,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setLastCommandContext({ origin: "reset", username: normalizedUsername });
       setActiveTab("commands");
       pushToast("info", `Reset de senha enfileirado. CommandId: ${command.id}`);
       setResetForm((current) => ({
@@ -372,34 +451,12 @@ export function ActiveDirectoryPage() {
       return;
     }
 
-    const normalizedQuery = searchQuery.trim();
-    if (normalizedQuery.length < 2) {
+    if (searchQuery.trim().length < 2) {
       pushToast("error", "Informe ao menos 2 caracteres para buscar.");
       return;
     }
 
-    setSearchingUsers(true);
-    try {
-      const payload: SearchAdUsersRequest = {
-        query: normalizedQuery,
-        limit: 20
-      };
-
-      const result = await apiRequest<AdUserSearchItem[]>(`/api/ad/servers/${selectedServerId}/users/search`, {
-        method: "POST",
-        token: auth.token,
-        body: payload
-      });
-
-      setSearchedUsers(result);
-      if (result.length === 0) {
-        pushToast("info", "Nenhum usuário AD encontrado para esse filtro.");
-      }
-    } catch (error) {
-      pushToast("error", error instanceof Error ? error.message : "Falha ao buscar usuários AD.");
-    } finally {
-      setSearchingUsers(false);
-    }
+    await searchUsersByQuery(searchQuery);
   }
 
   async function enqueueAdUserAction(username: string, action: "block" | "unblock") {
@@ -427,6 +484,7 @@ export function ActiveDirectoryPage() {
 
       finalStatusToastRef.current = null;
       setLastCommand(command);
+      setLastCommandContext({ origin: "user-action", username: normalizedUsername, action });
       setActiveTab("commands");
       pushToast(
         "info",
@@ -528,6 +586,9 @@ export function ActiveDirectoryPage() {
       {activeTab === "users" && (
         <div className="panel ad-tab-panel">
           <h3>Buscar, Bloquear e Desbloquear</h3>
+          {refreshingUsersAfterCommand && (
+            <p className="muted-text">Atualizando automaticamente a lista após execução do comando...</p>
+          )}
           <form className="toolbar" onSubmit={searchAdUsers}>
             <label>
               Buscar por username ou nome
